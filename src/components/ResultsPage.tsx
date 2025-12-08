@@ -10,9 +10,13 @@ import {
   Play,
   Home,
   Target,
-  CheckCircle2
+  CheckCircle2,
+  Download,
+  Loader2
 } from 'lucide-react';
 import { useState } from 'react';
+import { api } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
 
 interface Question {
   id: string | number;
@@ -28,12 +32,43 @@ interface ResultsPageProps {
   questions: Question[];
   answers: string[];
   feedbacks: FeedbackResult[];
+  interviewId?: string;
   onNewInterview: () => void;
   onDashboard: () => void;
 }
 
-const ResultsPage = ({ questions, answers, feedbacks, onNewInterview, onDashboard }: ResultsPageProps) => {
+const ResultsPage = ({ questions, answers, feedbacks, interviewId, onNewInterview, onDashboard }: ResultsPageProps) => {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const [downloading, setDownloading] = useState(false);
+  const { toast } = useToast();
+
+  const handleDownloadPdf = async () => {
+    if (!interviewId) {
+      toast({
+        title: 'Error',
+        description: 'Interview ID not found',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    setDownloading(true);
+    try {
+      await api.downloadInterviewPdf(interviewId);
+      toast({
+        title: 'Download successful',
+        description: 'Interview report has been downloaded.',
+      });
+    } catch (err) {
+      toast({
+        title: 'Download failed',
+        description: err instanceof Error ? err.message : 'Failed to download PDF',
+        variant: 'destructive',
+      });
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const overallScore = Math.round(
     feedbacks.reduce((acc, f) => acc + f.score, 0) / feedbacks.length
@@ -198,6 +233,28 @@ const ResultsPage = ({ questions, answers, feedbacks, onNewInterview, onDashboar
             <Home className="w-5 h-5 mr-2" />
             Back to Dashboard
           </Button>
+          
+          {interviewId && (
+            <Button 
+              variant="outline"
+              size="lg"
+              onClick={handleDownloadPdf}
+              disabled={downloading}
+            >
+              {downloading ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Downloading...
+                </>
+              ) : (
+                <>
+                  <Download className="w-5 h-5 mr-2" />
+                  Download PDF
+                </>
+              )}
+            </Button>
+          )}
+          
           <Button 
             size="lg"
             onClick={onNewInterview}

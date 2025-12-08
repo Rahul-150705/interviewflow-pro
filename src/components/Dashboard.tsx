@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
+import { Download, Loader2 } from 'lucide-react'; 
+import { useToast } from '@/hooks/use-toast';
 import { 
   Brain, 
   LogOut, 
@@ -38,8 +40,10 @@ interface DashboardProps {
 
 const Dashboard = ({ onStartInterview }: DashboardProps) => {
   const { user, logout } = useAuth();
+  const { toast } = useToast();
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [loading, setLoading] = useState(true);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadHistory();
@@ -53,6 +57,25 @@ const Dashboard = ({ onStartInterview }: DashboardProps) => {
       console.error('Failed to load history:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDownloadPdf = async (interviewId: string) => {
+    setDownloadingId(interviewId);
+    try {
+      await api.downloadInterviewPdf(interviewId);
+      toast({
+        title: 'Download successful',
+        description: 'Interview report has been downloaded.',
+      });
+    } catch (err) {
+      toast({
+        title: 'Download failed',
+        description: err instanceof Error ? err.message : 'Failed to download PDF',
+        variant: 'destructive',
+      });
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -233,7 +256,7 @@ const Dashboard = ({ onStartInterview }: DashboardProps) => {
               {interviews.map((interview, index) => (
                 <Card 
                   key={interview.id} 
-                  className="hover:shadow-md transition-shadow cursor-pointer group"
+                  className="hover:shadow-md transition-shadow group"
                 >
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
@@ -259,7 +282,30 @@ const Dashboard = ({ onStartInterview }: DashboardProps) => {
                           )}
                         </div>
                       </div>
-                      <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground group-hover:translate-x-1 transition-all" />
+                      
+                      <div className="flex items-center gap-2 ml-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDownloadPdf(interview.id)}
+                          disabled={downloadingId === interview.id}
+                          className="shrink-0"
+                        >
+                          {downloadingId === interview.id ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Downloading...
+                            </>
+                          ) : (
+                            <>
+                              <Download className="w-4 h-4 mr-2" />
+                              Download PDF
+                            </>
+                          )}
+                        </Button>
+                        
+                        <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground group-hover:translate-x-1 transition-all" />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

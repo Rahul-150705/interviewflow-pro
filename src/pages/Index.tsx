@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import LandingPage from '@/components/LandingPage';
 import AuthPage from '@/components/AuthPage';
@@ -31,25 +31,30 @@ interface InterviewResults {
   questions: Question[];
   answers: string[];
   feedbacks: FeedbackResult[];
+  interviewId: string;
 }
 
 const Index = () => {
   const { user, isLoading } = useAuth();
-  const [view, setView] = useState<AppView>(user ? 'dashboard' : 'landing');
+  const [view, setView] = useState<AppView>('landing');
   const [authMode, setAuthMode] = useState<AuthMode>('register');
   const [currentInterview, setCurrentInterview] = useState<Interview | null>(null);
   const [interviewResults, setInterviewResults] = useState<InterviewResults | null>(null);
 
   // Update view when auth state changes
-  if (!isLoading && user && view === 'landing') {
-    setView('dashboard');
-  }
-  if (!isLoading && user && view === 'auth') {
-    setView('dashboard');
-  }
-  if (!isLoading && !user && !['landing', 'auth'].includes(view)) {
-    setView('landing');
-  }
+  useEffect(() => {
+    if (!isLoading) {
+      if (user && view === 'landing') {
+        setView('dashboard');
+      }
+      if (user && view === 'auth') {
+        setView('dashboard');
+      }
+      if (!user && !['landing', 'auth'].includes(view)) {
+        setView('landing');
+      }
+    }
+  }, [isLoading, user, view]);
 
   if (isLoading) {
     return (
@@ -139,7 +144,10 @@ const Index = () => {
       <InterviewSession
         interview={currentInterview}
         onComplete={(results) => {
-          setInterviewResults(results);
+          setInterviewResults({
+            ...results,
+            interviewId: currentInterview.id
+          });
           setView('results');
         }}
         onExit={() => {
@@ -149,7 +157,6 @@ const Index = () => {
       />
     );
   }
-
   // Results page
   if (view === 'results' && interviewResults) {
     return (
@@ -157,6 +164,7 @@ const Index = () => {
         questions={interviewResults.questions}
         answers={interviewResults.answers}
         feedbacks={interviewResults.feedbacks}
+        interviewId={interviewResults.interviewId}
         onNewInterview={() => {
           setCurrentInterview(null);
           setInterviewResults(null);
@@ -170,7 +178,6 @@ const Index = () => {
       />
     );
   }
-
   // Default to dashboard
   return (
     <Dashboard
