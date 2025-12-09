@@ -12,7 +12,9 @@ import {
   Target,
   CheckCircle2,
   Download,
-  Loader2
+  Loader2,
+  Sparkles,
+  Zap
 } from 'lucide-react';
 import { useState } from 'react';
 import { api } from '@/lib/api';
@@ -81,9 +83,9 @@ const ResultsPage = ({ questions, answers, feedbacks, interviewId, onNewIntervie
   };
 
   const getScoreBg = (score: number) => {
-    if (score >= 80) return 'bg-success/10';
-    if (score >= 60) return 'bg-warning/10';
-    return 'bg-destructive/10';
+    if (score >= 80) return 'bg-success/20 border-success/30';
+    if (score >= 60) return 'bg-warning/20 border-warning/30';
+    return 'bg-destructive/20 border-destructive/30';
   };
 
   const getScoreLabel = (score: number) => {
@@ -99,14 +101,22 @@ const ResultsPage = ({ questions, answers, feedbacks, interviewId, onNewIntervie
   const lowScoreQuestions = feedbacks.filter(f => f.score < 60).length;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Background Effects */}
+      <div className="fixed inset-0 bg-radial-gradient pointer-events-none" />
+      <div className="fixed inset-0 bg-grid-pattern opacity-20 pointer-events-none" />
+      
+      {/* Floating Orbs */}
+      <div className="fixed top-40 right-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-float pointer-events-none" />
+      <div className="fixed bottom-20 left-20 w-80 h-80 bg-secondary/10 rounded-full blur-3xl animate-float pointer-events-none" style={{ animationDelay: '2s' }} />
+
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
+      <header className="sticky top-0 z-50 glass-card border-b border-border/50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
             <button
               onClick={onDashboard}
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
               <span className="hidden sm:inline">Back to Dashboard</span>
@@ -115,22 +125,25 @@ const ResultsPage = ({ questions, answers, feedbacks, interviewId, onNewIntervie
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
         {/* Score Overview */}
         <div className="text-center mb-12 animate-fade-up">
-          <div className="w-20 h-20 gradient-primary rounded-full flex items-center justify-center mx-auto mb-6 shadow-glow">
+          <div className="w-20 h-20 gradient-hero rounded-full flex items-center justify-center mx-auto mb-6 shadow-glow animate-pulse-glow">
             <Trophy className="w-10 h-10 text-primary-foreground" />
           </div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Interview Complete!</h1>
+          <h1 className="text-3xl font-bold mb-2">
+            <span className="text-foreground">Interview </span>
+            <span className="gradient-text">Complete!</span>
+          </h1>
           <p className="text-muted-foreground mb-8">Here's how you performed</p>
           
-          <Card className="inline-block">
+          <Card className="inline-block glass-card border-border/50">
             <CardContent className="p-8">
               <div className={`text-7xl font-bold mb-2 ${getScoreColor(overallScore)}`}>
                 {overallScore}
               </div>
               <p className="text-lg text-muted-foreground mb-4">Overall Score</p>
-              <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${getScoreBg(overallScore)} ${getScoreColor(overallScore)}`}>
+              <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border ${getScoreBg(overallScore)} ${getScoreColor(overallScore)}`}>
                 <Target className="w-4 h-4" />
                 {getScoreLabel(overallScore)}
               </div>
@@ -140,19 +153,19 @@ const ResultsPage = ({ questions, answers, feedbacks, interviewId, onNewIntervie
 
         {/* Quick Stats */}
         <div className="grid grid-cols-3 gap-4 mb-12 animate-fade-up" style={{ animationDelay: '0.1s' }}>
-          <Card>
+          <Card className="glass-card border-border/50 hover:border-success/50 transition-all hover-lift">
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-success mb-1">{highScoreQuestions}</div>
               <p className="text-sm text-muted-foreground">Excellent (80+)</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="glass-card border-border/50 hover:border-warning/50 transition-all hover-lift">
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-warning mb-1">{mediumScoreQuestions}</div>
               <p className="text-sm text-muted-foreground">Good (60-79)</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="glass-card border-border/50 hover:border-destructive/50 transition-all hover-lift">
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-destructive mb-1">{lowScoreQuestions}</div>
               <p className="text-sm text-muted-foreground">Improve (&lt;60)</p>
@@ -171,7 +184,7 @@ const ResultsPage = ({ questions, answers, feedbacks, interviewId, onNewIntervie
             {questions.map((question, index) => (
               <Card 
                 key={question.id}
-                className="overflow-hidden transition-shadow hover:shadow-md"
+                className="glass-card border-border/50 overflow-hidden transition-all hover:border-primary/50"
               >
                 <CardContent className="p-0">
                   <button
@@ -179,7 +192,7 @@ const ResultsPage = ({ questions, answers, feedbacks, interviewId, onNewIntervie
                     className="w-full p-6 flex items-center justify-between text-left"
                   >
                     <div className="flex items-center gap-4">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${getScoreBg(feedbacks[index].score)}`}>
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border ${getScoreBg(feedbacks[index].score)}`}>
                         <span className={`text-lg font-bold ${getScoreColor(feedbacks[index].score)}`}>
                           {feedbacks[index].score}
                         </span>
@@ -200,7 +213,7 @@ const ResultsPage = ({ questions, answers, feedbacks, interviewId, onNewIntervie
                   
                   {expandedIndex === index && (
                     <div className="px-6 pb-6 space-y-4 animate-fade-up">
-                      <div className="p-4 bg-muted/50 rounded-xl">
+                      <div className="p-4 glass-card rounded-xl border border-border/50">
                         <p className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
                           <MessageSquare className="w-4 h-4" />
                           Your Answer
@@ -208,9 +221,9 @@ const ResultsPage = ({ questions, answers, feedbacks, interviewId, onNewIntervie
                         <p className="text-foreground">{answers[index]}</p>
                       </div>
                       
-                      <div className={`p-4 rounded-xl ${getScoreBg(feedbacks[index].score)}`}>
+                      <div className={`p-4 rounded-xl border ${getScoreBg(feedbacks[index].score)}`}>
                         <p className={`text-sm font-medium mb-2 flex items-center gap-2 ${getScoreColor(feedbacks[index].score)}`}>
-                          <CheckCircle2 className="w-4 h-4" />
+                          <Sparkles className="w-4 h-4" />
                           AI Feedback
                         </p>
                         <p className="text-foreground">{feedbacks[index].aiFeedback}</p>
@@ -229,6 +242,7 @@ const ResultsPage = ({ questions, answers, feedbacks, interviewId, onNewIntervie
             variant="outline" 
             size="lg"
             onClick={onDashboard}
+            className="border-border/50 hover:border-primary/50"
           >
             <Home className="w-5 h-5 mr-2" />
             Back to Dashboard
@@ -240,6 +254,7 @@ const ResultsPage = ({ questions, answers, feedbacks, interviewId, onNewIntervie
               size="lg"
               onClick={handleDownloadPdf}
               disabled={downloading}
+              className="border-border/50 hover:border-primary/50"
             >
               {downloading ? (
                 <>
@@ -258,7 +273,7 @@ const ResultsPage = ({ questions, answers, feedbacks, interviewId, onNewIntervie
           <Button 
             size="lg"
             onClick={onNewInterview}
-            className="gradient-primary text-primary-foreground border-0"
+            className="gradient-hero text-primary-foreground border-0 shadow-glow"
           >
             <Play className="w-5 h-5 mr-2" />
             Start New Interview
