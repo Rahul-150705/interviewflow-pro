@@ -91,7 +91,10 @@ const InterviewSession = ({ interview, onComplete, onExit }: InterviewSessionPro
     try {
       const result = await api.submitAnswer(currentQuestion.id, currentAnswer);
       const newFeedbacks = [...feedbacks];
-      newFeedbacks[currentIndex] = result;
+      newFeedbacks[currentIndex] = {
+        ...result,
+        score: Math.round(result.score), // ✅ Round score here
+      };
       setFeedbacks(newFeedbacks);
     } catch (err) {
       toast({
@@ -211,7 +214,7 @@ const InterviewSession = ({ interview, onComplete, onExit }: InterviewSessionPro
                       <div className="flex items-center justify-between mb-3">
                         <span className="text-sm font-medium text-muted-foreground">AI Feedback</span>
                         <span className={`text-2xl font-bold ${getScoreColor(currentFeedback.score)}`}>
-                          {currentFeedback.score}/100
+                          {currentFeedback.score}/100 {/* ✅ Rounded */}
                         </span>
                       </div>
                       <p className="text-foreground">{currentFeedback.aiFeedback}</p>
