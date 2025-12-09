@@ -3,12 +3,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import LandingPage from '@/components/LandingPage';
 import AuthPage from '@/components/AuthPage';
 import Dashboard from '@/components/Dashboard';
+import DashboardWithSidebar from '@/components/DashboardWithSidebar';
+import ResumeAnalyzerPage from '@/components/ResumeAnalyzerPage';
 import ResumeUpload from '@/components/ResumeUpload';
 import InterviewSetup from '@/components/InterviewSetup';
 import InterviewSession from '@/components/InterviewSession';
 import ResultsPage from '@/components/ResultsPage';
 
 type AppView = 'landing' | 'auth' | 'dashboard' | 'resume' | 'setup' | 'interview' | 'results';
+type DashboardView = 'ai-interview' | 'resume-analyzer';
 type AuthMode = 'login' | 'register';
 
 interface Question {
@@ -37,6 +40,7 @@ interface InterviewResults {
 const Index = () => {
   const { user, isLoading } = useAuth();
   const [view, setView] = useState<AppView>('landing');
+  const [dashboardView, setDashboardView] = useState<DashboardView>('ai-interview');
   const [authMode, setAuthMode] = useState<AuthMode>('register');
   const [currentInterview, setCurrentInterview] = useState<Interview | null>(null);
   const [interviewResults, setInterviewResults] = useState<InterviewResults | null>(null);
@@ -106,16 +110,23 @@ const Index = () => {
     );
   }
 
-  // Dashboard
+  // Dashboard with sidebar navigation
   if (view === 'dashboard') {
     return (
-      <Dashboard
-        onStartInterview={() => setView('resume')}
-      />
+      <DashboardWithSidebar 
+        currentView={dashboardView}
+        onViewChange={setDashboardView}
+      >
+        {dashboardView === 'ai-interview' ? (
+          <Dashboard onStartInterview={() => setView('resume')} />
+        ) : (
+          <ResumeAnalyzerPage />
+        )}
+      </DashboardWithSidebar>
     );
   }
 
-  // Resume upload
+  // Resume upload (for AI Interview flow)
   if (view === 'resume') {
     return (
       <ResumeUpload
@@ -157,6 +168,7 @@ const Index = () => {
       />
     );
   }
+
   // Results page
   if (view === 'results' && interviewResults) {
     return (
@@ -178,11 +190,19 @@ const Index = () => {
       />
     );
   }
+
   // Default to dashboard
   return (
-    <Dashboard
-      onStartInterview={() => setView('resume')}
-    />
+    <DashboardWithSidebar 
+      currentView={dashboardView}
+      onViewChange={setDashboardView}
+    >
+      {dashboardView === 'ai-interview' ? (
+        <Dashboard onStartInterview={() => setView('resume')} />
+      ) : (
+        <ResumeAnalyzerPage />
+      )}
+    </DashboardWithSidebar>
   );
 };
 
