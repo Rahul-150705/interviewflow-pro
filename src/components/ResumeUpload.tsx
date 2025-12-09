@@ -11,7 +11,8 @@ import {
   ArrowLeft,
   ArrowRight,
   Loader2,
-  Brain
+  Brain,
+  Sparkles
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -54,7 +55,6 @@ const ResumeUpload = ({ onBack, onContinue }: ResumeUploadProps) => {
     setUploading(true);
     setUploadProgress(0);
 
-    // Simulate progress
     const interval = setInterval(() => {
       setUploadProgress((prev) => {
         if (prev >= 90) {
@@ -114,14 +114,22 @@ const ResumeUpload = ({ onBack, onContinue }: ResumeUploadProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Background Effects */}
+      <div className="fixed inset-0 bg-radial-gradient pointer-events-none" />
+      <div className="fixed inset-0 bg-grid-pattern opacity-20 pointer-events-none" />
+      
+      {/* Floating Orbs */}
+      <div className="fixed top-40 right-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-float pointer-events-none" />
+      <div className="fixed bottom-20 left-20 w-80 h-80 bg-secondary/10 rounded-full blur-3xl animate-float pointer-events-none" style={{ animationDelay: '2s' }} />
+
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
+      <header className="sticky top-0 z-50 glass-card border-b border-border/50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
             <button
               onClick={onBack}
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
               <span className="hidden sm:inline">Back to Dashboard</span>
@@ -130,15 +138,15 @@ const ResumeUpload = ({ onBack, onContinue }: ResumeUploadProps) => {
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
         {/* Progress Steps */}
         <div className="flex items-center justify-center gap-4 mb-12">
           {['Resume', 'Job Details', 'Interview'].map((step, index) => (
             <div key={step} className="flex items-center gap-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
                 index === 0 
-                  ? 'gradient-primary text-primary-foreground' 
-                  : 'bg-muted text-muted-foreground'
+                  ? 'gradient-primary text-primary-foreground shadow-glow' 
+                  : 'glass-card border border-border/50 text-muted-foreground'
               }`}>
                 {index + 1}
               </div>
@@ -148,20 +156,26 @@ const ResumeUpload = ({ onBack, onContinue }: ResumeUploadProps) => {
                 {step}
               </span>
               {index < 2 && (
-                <div className="w-12 h-0.5 bg-muted mx-2" />
+                <div className="w-12 h-0.5 bg-border/50 mx-2" />
               )}
             </div>
           ))}
         </div>
 
         <div className="text-center mb-8 animate-fade-up">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Upload Your Resume</h1>
+          <div className="w-16 h-16 gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-glow">
+            <FileText className="w-8 h-8 text-primary-foreground" />
+          </div>
+          <h1 className="text-3xl font-bold mb-2">
+            <span className="text-foreground">Upload Your </span>
+            <span className="gradient-text">Resume</span>
+          </h1>
           <p className="text-muted-foreground">
             We'll use your resume to generate personalized interview questions (optional)
           </p>
         </div>
 
-        <Card className="animate-fade-up" style={{ animationDelay: '0.1s' }}>
+        <Card className="glass-card border-border/50 animate-fade-up" style={{ animationDelay: '0.1s' }}>
           <CardContent className="p-8">
             {!file ? (
               <div
@@ -170,8 +184,8 @@ const ResumeUpload = ({ onBack, onContinue }: ResumeUploadProps) => {
                 onDragLeave={handleDragLeave}
                 className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-200 ${
                   isDragging 
-                    ? 'border-primary bg-primary/5' 
-                    : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                    ? 'border-primary bg-primary/10' 
+                    : 'border-border/50 hover:border-primary/50 hover:bg-card/50'
                 }`}
               >
                 <input
@@ -180,7 +194,7 @@ const ResumeUpload = ({ onBack, onContinue }: ResumeUploadProps) => {
                   accept=".pdf,.doc,.docx"
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 />
-                <div className="w-16 h-16 gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-glow">
                   <Upload className="w-8 h-8 text-primary-foreground" />
                 </div>
                 <h3 className="text-lg font-semibold text-foreground mb-2">
@@ -195,8 +209,8 @@ const ResumeUpload = ({ onBack, onContinue }: ResumeUploadProps) => {
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl">
-                  <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
+                <div className="flex items-center gap-4 p-4 glass-card rounded-xl border border-border/50">
+                  <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center shrink-0">
                     <FileText className="w-6 h-6 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -212,7 +226,7 @@ const ResumeUpload = ({ onBack, onContinue }: ResumeUploadProps) => {
                   ) : (
                     <button
                       onClick={removeFile}
-                      className="p-2 hover:bg-muted rounded-lg transition-colors"
+                      className="p-2 hover:bg-card rounded-lg transition-colors"
                     >
                       <X className="w-5 h-5 text-muted-foreground" />
                     </button>
@@ -229,7 +243,7 @@ const ResumeUpload = ({ onBack, onContinue }: ResumeUploadProps) => {
                 )}
 
                 {uploaded && (
-                  <div className="flex items-center gap-2 p-3 bg-success/10 text-success rounded-lg animate-scale-in">
+                  <div className="flex items-center gap-2 p-3 bg-success/10 border border-success/30 text-success rounded-lg animate-scale-in">
                     <CheckCircle2 className="w-5 h-5" />
                     <span className="font-medium">Resume uploaded successfully!</span>
                   </div>
@@ -240,12 +254,12 @@ const ResumeUpload = ({ onBack, onContinue }: ResumeUploadProps) => {
         </Card>
 
         <div className="flex justify-between mt-8 animate-fade-up" style={{ animationDelay: '0.2s' }}>
-          <Button variant="outline" onClick={onContinue}>
+          <Button variant="outline" onClick={onContinue} className="border-border/50 hover:border-primary/50">
             Skip for now
           </Button>
           <Button 
             onClick={onContinue} 
-            className="gradient-primary text-primary-foreground border-0"
+            className="gradient-primary text-primary-foreground border-0 shadow-glow"
           >
             Continue
             <ArrowRight className="w-4 h-4 ml-2" />
