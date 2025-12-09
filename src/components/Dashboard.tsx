@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
 import { Download, Loader2 } from 'lucide-react'; 
@@ -15,7 +15,9 @@ import {
   Clock,
   ChevronRight,
   User,
-  Settings
+  Settings,
+  Sparkles,
+  Zap
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -92,39 +94,47 @@ const Dashboard = ({ onStartInterview }: DashboardProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Background Effects */}
+      <div className="fixed inset-0 bg-radial-gradient pointer-events-none" />
+      <div className="fixed inset-0 bg-grid-pattern opacity-20 pointer-events-none" />
+      
+      {/* Floating Orbs */}
+      <div className="fixed top-40 right-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-float pointer-events-none" />
+      <div className="fixed bottom-20 left-20 w-80 h-80 bg-secondary/10 rounded-full blur-3xl animate-float pointer-events-none" style={{ animationDelay: '2s' }} />
+
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
+      <header className="sticky top-0 z-50 glass-card border-b border-border/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center">
+              <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center shadow-glow">
                 <Brain className="w-6 h-6 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold text-foreground">InterviewAI</span>
+              <span className="text-xl font-bold gradient-text">MockInterview AI</span>
             </div>
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2">
-                  <div className="w-8 h-8 gradient-primary rounded-full flex items-center justify-center">
+                <Button variant="ghost" className="flex items-center gap-2 hover:bg-card">
+                  <div className="w-8 h-8 gradient-primary rounded-full flex items-center justify-center shadow-glow">
                     <User className="w-4 h-4 text-primary-foreground" />
                   </div>
                   <span className="hidden sm:inline text-foreground">{user?.email}</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent align="end" className="w-56 glass-card border-border/50">
                 <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium">{user?.name || 'User'}</p>
+                  <p className="text-sm font-medium text-foreground">{user?.name || 'User'}</p>
                   <p className="text-xs text-muted-foreground">{user?.email}</p>
                 </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-border/50" />
+                <DropdownMenuItem className="focus:bg-card">
                   <Settings className="w-4 h-4 mr-2" />
                   Settings
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout} className="text-destructive focus:text-destructive">
+                <DropdownMenuSeparator className="bg-border/50" />
+                <DropdownMenuItem onClick={logout} className="text-destructive focus:text-destructive focus:bg-destructive/10">
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign out
                 </DropdownMenuItem>
@@ -135,11 +145,13 @@ const Dashboard = ({ onStartInterview }: DashboardProps) => {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         {/* Welcome Section */}
         <div className="mb-8 animate-fade-up">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            {getGreeting()}, {user?.name || 'there'}! 👋
+          <h1 className="text-3xl font-bold mb-2">
+            <span className="text-foreground">{getGreeting()}, </span>
+            <span className="gradient-text">{user?.name || 'there'}!</span>
+            <span className="text-foreground"> 👋</span>
           </h1>
           <p className="text-muted-foreground">
             Ready to practice your interview skills? Let's get started.
@@ -148,42 +160,42 @@ const Dashboard = ({ onStartInterview }: DashboardProps) => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          <Card className="animate-fade-up" style={{ animationDelay: '0.1s' }}>
+          <Card className="glass-card border-border/50 hover:border-primary/50 transition-all hover-lift animate-fade-up" style={{ animationDelay: '0.1s' }}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Total Interviews</p>
                   <p className="text-3xl font-bold text-foreground">{totalInterviews}</p>
                 </div>
-                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center">
                   <Target className="w-6 h-6 text-primary" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="animate-fade-up" style={{ animationDelay: '0.2s' }}>
+          <Card className="glass-card border-border/50 hover:border-success/50 transition-all hover-lift animate-fade-up" style={{ animationDelay: '0.2s' }}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Average Score</p>
                   <p className="text-3xl font-bold text-foreground">{averageScore}%</p>
                 </div>
-                <div className="w-12 h-12 bg-success/10 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-success/20 rounded-xl flex items-center justify-center">
                   <BarChart3 className="w-6 h-6 text-success" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="animate-fade-up" style={{ animationDelay: '0.3s' }}>
+          <Card className="glass-card border-border/50 hover:border-warning/50 transition-all hover-lift animate-fade-up" style={{ animationDelay: '0.3s' }}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Practice Time</p>
                   <p className="text-3xl font-bold text-foreground">{totalInterviews * 15}m</p>
                 </div>
-                <div className="w-12 h-12 bg-warning/10 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-warning/20 rounded-xl flex items-center justify-center">
                   <Clock className="w-6 h-6 text-warning" />
                 </div>
               </div>
@@ -192,25 +204,32 @@ const Dashboard = ({ onStartInterview }: DashboardProps) => {
         </div>
 
         {/* Start Interview CTA */}
-        <Card className="gradient-primary border-0 mb-8 overflow-hidden animate-fade-up" style={{ animationDelay: '0.4s' }}>
-          <CardContent className="p-8">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-              <div className="text-center sm:text-left">
-                <h2 className="text-2xl font-bold text-primary-foreground mb-2">
-                  Ready for your next interview?
-                </h2>
-                <p className="text-primary-foreground/80">
-                  Practice with AI-generated questions tailored to your target role.
-                </p>
+        <Card className="gradient-border rounded-2xl overflow-hidden mb-8 animate-fade-up" style={{ animationDelay: '0.4s' }}>
+          <CardContent className="p-0">
+            <div className="gradient-hero p-8">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+                <div className="text-center sm:text-left flex items-center gap-4">
+                  <div className="w-16 h-16 bg-background/10 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-background/20 animate-float">
+                    <Sparkles className="w-8 h-8 text-primary-foreground" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-primary-foreground mb-2">
+                      Ready for your next interview?
+                    </h2>
+                    <p className="text-primary-foreground/80">
+                      Practice with AI-generated questions tailored to your target role.
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  size="lg"
+                  onClick={onStartInterview}
+                  className="bg-background text-foreground hover:bg-background/90 shrink-0 shadow-lg"
+                >
+                  <Play className="w-5 h-5 mr-2" />
+                  Start New Interview
+                </Button>
               </div>
-              <Button 
-                size="lg"
-                onClick={onStartInterview}
-                className="bg-card text-foreground hover:bg-card/90 shrink-0"
-              >
-                <Play className="w-5 h-5 mr-2" />
-                Start New Interview
-              </Button>
             </div>
           </CardContent>
         </Card>
@@ -227,25 +246,25 @@ const Dashboard = ({ onStartInterview }: DashboardProps) => {
           {loading ? (
             <div className="space-y-4">
               {[1, 2, 3].map((i) => (
-                <Card key={i} className="animate-pulse">
+                <Card key={i} className="glass-card border-border/50">
                   <CardContent className="p-6">
-                    <div className="h-6 bg-muted rounded w-1/3 mb-2" />
-                    <div className="h-4 bg-muted rounded w-1/4" />
+                    <div className="h-6 bg-muted/50 rounded w-1/3 mb-2 animate-shimmer" />
+                    <div className="h-4 bg-muted/50 rounded w-1/4 animate-shimmer" />
                   </CardContent>
                 </Card>
               ))}
             </div>
           ) : interviews.length === 0 ? (
-            <Card>
+            <Card className="glass-card border-border/50">
               <CardContent className="p-12 text-center">
-                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-muted/50 rounded-full flex items-center justify-center mx-auto mb-4">
                   <History className="w-8 h-8 text-muted-foreground" />
                 </div>
                 <h3 className="text-lg font-semibold text-foreground mb-2">No interviews yet</h3>
                 <p className="text-muted-foreground mb-4">
                   Start your first mock interview to see your history here.
                 </p>
-                <Button onClick={onStartInterview} className="gradient-primary text-primary-foreground border-0">
+                <Button onClick={onStartInterview} className="gradient-primary text-primary-foreground border-0 shadow-glow">
                   <Play className="w-4 h-4 mr-2" />
                   Start First Interview
                 </Button>
@@ -256,7 +275,7 @@ const Dashboard = ({ onStartInterview }: DashboardProps) => {
               {interviews.map((interview, index) => (
                 <Card 
                   key={interview.id} 
-                  className="hover:shadow-md transition-shadow group"
+                  className="glass-card border-border/50 hover:border-primary/50 transition-all group hover-lift"
                 >
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
@@ -265,7 +284,7 @@ const Dashboard = ({ onStartInterview }: DashboardProps) => {
                           <h3 className="text-lg font-semibold text-foreground truncate">
                             {interview.jobTitle}
                           </h3>
-                          <span className="px-2.5 py-0.5 bg-primary/10 text-primary rounded-full text-xs font-medium shrink-0">
+                          <span className="px-2.5 py-0.5 bg-primary/20 text-primary rounded-full text-xs font-medium shrink-0 border border-primary/30">
                             {interview.questionCount || 0} questions
                           </span>
                         </div>
@@ -289,7 +308,7 @@ const Dashboard = ({ onStartInterview }: DashboardProps) => {
                           size="sm"
                           onClick={() => handleDownloadPdf(interview.id)}
                           disabled={downloadingId === interview.id}
-                          className="shrink-0"
+                          className="shrink-0 border-border/50 hover:border-primary/50 hover:bg-primary/10"
                         >
                           {downloadingId === interview.id ? (
                             <>
@@ -304,7 +323,7 @@ const Dashboard = ({ onStartInterview }: DashboardProps) => {
                           )}
                         </Button>
                         
-                        <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground group-hover:translate-x-1 transition-all" />
+                        <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
                       </div>
                     </div>
                   </CardContent>

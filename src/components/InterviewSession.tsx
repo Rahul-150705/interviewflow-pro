@@ -11,7 +11,9 @@ import {
   Clock,
   Loader2,
   MessageSquare,
-  Save
+  Save,
+  Sparkles,
+  Zap
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -52,7 +54,6 @@ const InterviewSession = ({ interview, onComplete, onExit }: InterviewSessionPro
   const currentFeedback = feedbacks[currentIndex];
   const progress = ((currentIndex + 1) / questions.length) * 100;
 
-  // Timer
   useEffect(() => {
     const timer = setInterval(() => {
       setElapsedTime((prev) => prev + 1);
@@ -60,7 +61,6 @@ const InterviewSession = ({ interview, onComplete, onExit }: InterviewSessionPro
     return () => clearInterval(timer);
   }, []);
 
-  // Auto-save indicator
   useEffect(() => {
     if (currentAnswer) {
       setAutoSaved(false);
@@ -111,7 +111,6 @@ const InterviewSession = ({ interview, onComplete, onExit }: InterviewSessionPro
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
-      // Complete interview
       onComplete({
         questions,
         answers,
@@ -139,26 +138,34 @@ const InterviewSession = ({ interview, onComplete, onExit }: InterviewSessionPro
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Background Effects */}
+      <div className="fixed inset-0 bg-radial-gradient pointer-events-none" />
+      <div className="fixed inset-0 bg-grid-pattern opacity-20 pointer-events-none" />
+      
+      {/* Floating Orbs */}
+      <div className="fixed top-40 right-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-float pointer-events-none" />
+      <div className="fixed bottom-20 left-20 w-80 h-80 bg-secondary/10 rounded-full blur-3xl animate-float pointer-events-none" style={{ animationDelay: '2s' }} />
+
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
+      <header className="sticky top-0 z-50 glass-card border-b border-border/50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <button
               onClick={onExit}
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
               <span className="hidden sm:inline">Exit Interview</span>
             </button>
             
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Clock className="w-4 h-4" />
+              <div className="flex items-center gap-2 text-muted-foreground glass-card px-3 py-1.5 rounded-lg border border-border/50">
+                <Clock className="w-4 h-4 text-primary" />
                 <span className="font-mono">{formatTime(elapsedTime)}</span>
               </div>
               {autoSaved && currentAnswer && (
-                <div className="flex items-center gap-1 text-success text-sm animate-fade-up">
+                <div className="flex items-center gap-1 text-success text-sm animate-fade-up glass-card px-3 py-1.5 rounded-lg border border-success/30">
                   <Save className="w-4 h-4" />
                   <span className="hidden sm:inline">Saved</span>
                 </div>
@@ -168,7 +175,7 @@ const InterviewSession = ({ interview, onComplete, onExit }: InterviewSessionPro
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main Content */}
           <div className="flex-1">
@@ -186,11 +193,11 @@ const InterviewSession = ({ interview, onComplete, onExit }: InterviewSessionPro
             </div>
 
             {/* Question Card */}
-            <Card className="mb-6 animate-fade-up" style={{ animationDelay: '0.1s' }}>
+            <Card className="glass-card border-border/50 mb-6 animate-fade-up" style={{ animationDelay: '0.1s' }}>
               <CardContent className="p-8">
                 <div className="flex items-start gap-4 mb-6">
-                  <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center shrink-0">
-                    <MessageSquare className="w-5 h-5 text-primary-foreground" />
+                  <div className="w-12 h-12 gradient-primary rounded-xl flex items-center justify-center shrink-0 shadow-glow">
+                    <MessageSquare className="w-6 h-6 text-primary-foreground" />
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Interview Question</p>
@@ -201,8 +208,8 @@ const InterviewSession = ({ interview, onComplete, onExit }: InterviewSessionPro
                 </div>
 
                 {currentFeedback ? (
-                  <div className="animate-scale-in">
-                    <div className="p-4 bg-muted/50 rounded-xl mb-4">
+                  <div className="animate-scale-in space-y-4">
+                    <div className="p-4 glass-card rounded-xl border border-border/50">
                       <div className="flex items-center justify-between mb-3">
                         <span className="text-sm font-medium text-muted-foreground">Your Answer</span>
                         <CheckCircle2 className="w-5 h-5 text-success" />
@@ -210,9 +217,12 @@ const InterviewSession = ({ interview, onComplete, onExit }: InterviewSessionPro
                       <p className="text-foreground">{currentAnswer}</p>
                     </div>
 
-                    <div className="p-4 bg-accent/50 rounded-xl">
+                    <div className="p-4 glass-card rounded-xl border border-primary/30 bg-primary/5">
                       <div className="flex items-center justify-between mb-3">
-                        <span className="text-sm font-medium text-muted-foreground">AI Feedback</span>
+                        <div className="flex items-center gap-2">
+                          <Sparkles className="w-4 h-4 text-primary" />
+                          <span className="text-sm font-medium text-foreground">AI Feedback</span>
+                        </div>
                         <span className={`text-2xl font-bold ${getScoreColor(currentFeedback.score)}`}>
                           {currentFeedback.score}/100 {/* ✅ Rounded */}
                         </span>
@@ -226,7 +236,7 @@ const InterviewSession = ({ interview, onComplete, onExit }: InterviewSessionPro
                       value={currentAnswer}
                       onChange={(e) => updateAnswer(e.target.value)}
                       placeholder="Type your answer here... Take your time to provide a thoughtful response."
-                      className="min-h-[200px] resize-none text-base"
+                      className="min-h-[200px] resize-none text-base bg-card border-border/50 focus:border-primary focus:ring-primary/20"
                     />
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted-foreground">
@@ -235,7 +245,7 @@ const InterviewSession = ({ interview, onComplete, onExit }: InterviewSessionPro
                       <Button
                         onClick={handleSubmitAnswer}
                         disabled={loading || !currentAnswer.trim()}
-                        className="gradient-primary text-primary-foreground border-0"
+                        className="gradient-primary text-primary-foreground border-0 shadow-glow"
                       >
                         {loading ? (
                           <>
@@ -243,7 +253,10 @@ const InterviewSession = ({ interview, onComplete, onExit }: InterviewSessionPro
                             Analyzing...
                           </>
                         ) : (
-                          'Submit Answer'
+                          <>
+                            <Zap className="w-4 h-4 mr-2" />
+                            Submit Answer
+                          </>
                         )}
                       </Button>
                     </div>
@@ -258,13 +271,14 @@ const InterviewSession = ({ interview, onComplete, onExit }: InterviewSessionPro
                 variant="outline"
                 onClick={handlePrevious}
                 disabled={currentIndex === 0}
+                className="border-border/50 hover:border-primary/50"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Previous
               </Button>
               
               {currentFeedback && (
-                <Button onClick={handleNext} className="gradient-primary text-primary-foreground border-0">
+                <Button onClick={handleNext} className="gradient-primary text-primary-foreground border-0 shadow-glow">
                   {currentIndex < questions.length - 1 ? (
                     <>
                       Next Question
@@ -283,9 +297,12 @@ const InterviewSession = ({ interview, onComplete, onExit }: InterviewSessionPro
 
           {/* Sidebar - Question Navigator */}
           <div className="w-full lg:w-72 shrink-0">
-            <Card className="sticky top-24 animate-fade-up" style={{ animationDelay: '0.3s' }}>
+            <Card className="sticky top-24 glass-card border-border/50 animate-fade-up" style={{ animationDelay: '0.3s' }}>
               <CardContent className="p-4">
-                <h3 className="text-sm font-semibold text-foreground mb-4">Questions</h3>
+                <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4 text-primary" />
+                  Questions
+                </h3>
                 <div className="space-y-2">
                   {questions.map((q, index) => (
                     <button
@@ -293,17 +310,17 @@ const InterviewSession = ({ interview, onComplete, onExit }: InterviewSessionPro
                       onClick={() => setCurrentIndex(index)}
                       className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all ${
                         index === currentIndex
-                          ? 'bg-primary/10 text-primary'
+                          ? 'glass-card border border-primary/50 text-primary'
                           : feedbacks[index]
-                          ? 'bg-success/10 text-success'
+                          ? 'glass-card border border-success/30 text-success'
                           : answers[index]
-                          ? 'bg-muted text-foreground'
-                          : 'hover:bg-muted text-muted-foreground'
+                          ? 'glass-card border border-border/50 text-foreground'
+                          : 'hover:bg-card text-muted-foreground'
                       }`}
                     >
                       <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium shrink-0 ${
                         index === currentIndex
-                          ? 'gradient-primary text-primary-foreground'
+                          ? 'gradient-primary text-primary-foreground shadow-glow'
                           : feedbacks[index]
                           ? 'bg-success text-success-foreground'
                           : 'bg-muted text-muted-foreground'
