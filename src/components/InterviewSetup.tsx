@@ -7,13 +7,15 @@ import { Label } from '@/components/ui/label';
 import { api } from '@/lib/api';
 import { 
   ArrowLeft,
-  ArrowRight,
   Briefcase,
   FileText,
   Loader2,
   Sparkles,
-  Zap,
-  Lightbulb
+  Lightbulb,
+  Users,
+  Code,
+  Database,
+  Network
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -33,10 +35,47 @@ interface InterviewSetupProps {
   onStart: (interview: Interview) => void;
 }
 
+type RoundType = 'BEHAVIORAL' | 'CODING' | 'DSA' | 'SYSTEM_DESIGN';
+
 const InterviewSetup = ({ onBack, onStart }: InterviewSetupProps) => {
-  const [formData, setFormData] = useState({ jobTitle: '', jobDescription: '' });
+  const [formData, setFormData] = useState({ 
+    jobTitle: '', 
+    jobDescription: '',
+    roundType: '' as RoundType | ''
+  });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+
+  const rounds = [
+    {
+      type: 'BEHAVIORAL' as RoundType,
+      title: 'Behavioral Round',
+      description: 'Leadership, teamwork, and problem-solving scenarios',
+      icon: Users,
+      color: 'from-blue-500 to-indigo-500'
+    },
+    {
+      type: 'CODING' as RoundType,
+      title: 'Coding Round',
+      description: 'Practical coding problems and implementation',
+      icon: Code,
+      color: 'from-green-500 to-emerald-500'
+    },
+    {
+      type: 'DSA' as RoundType,
+      title: 'DSA Round',
+      description: 'Data structures, algorithms, and complexity',
+      icon: Database,
+      color: 'from-purple-500 to-pink-500'
+    },
+    {
+      type: 'SYSTEM_DESIGN' as RoundType,
+      title: 'System Design',
+      description: 'Architecture, scalability, and distributed systems',
+      icon: Network,
+      color: 'from-orange-500 to-red-500'
+    }
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,9 +89,22 @@ const InterviewSetup = ({ onBack, onStart }: InterviewSetupProps) => {
       return;
     }
 
+    if (!formData.roundType) {
+      toast({
+        title: 'Round type required',
+        description: 'Please select an interview round type.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      const data = await api.startInterview(formData.jobTitle, formData.jobDescription);
+      const data = await api.startInterview(
+        formData.jobTitle, 
+        formData.jobDescription,
+        formData.roundType
+      );
       onStart(data);
     } catch (err) {
       toast({
@@ -80,7 +132,7 @@ const InterviewSetup = ({ onBack, onStart }: InterviewSetupProps) => {
 
       {/* Header */}
       <header className="sticky top-0 z-50 glass-card border-b border-border/50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
             <button
               onClick={onBack}
@@ -93,7 +145,7 @@ const InterviewSetup = ({ onBack, onStart }: InterviewSetupProps) => {
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
         {/* Progress Steps */}
         <div className="flex items-center justify-center gap-4 mb-12">
           {['Resume', 'Job Details', 'Interview'].map((step, index) => (
@@ -126,13 +178,60 @@ const InterviewSetup = ({ onBack, onStart }: InterviewSetupProps) => {
             <span className="gradient-text">Interview</span>
           </h1>
           <p className="text-muted-foreground">
-            Tell us about the job you're preparing for
+            Select interview round and provide job details
           </p>
         </div>
 
-        <Card className="glass-card border-border/50 animate-fade-up" style={{ animationDelay: '0.1s' }}>
-          <CardContent className="p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Interview Round Selection */}
+          <Card className="glass-card border-border/50 animate-fade-up">
+            <CardContent className="p-6">
+              <Label className="text-lg font-semibold text-foreground mb-4 block">
+                Select Interview Round
+              </Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {rounds.map((round) => {
+                  const Icon = round.icon;
+                  const isSelected = formData.roundType === round.type;
+                  
+                  return (
+                    <button
+                      key={round.type}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, roundType: round.type })}
+                      className={`
+                        relative p-6 rounded-xl text-left transition-all duration-300
+                        ${isSelected 
+                          ? 'glass-card border-2 border-primary shadow-glow' 
+                          : 'glass-card border border-border/50 hover:border-primary/50'
+                        }
+                      `}
+                    >
+                      <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${round.color} flex items-center justify-center mb-4`}>
+                        <Icon className="w-6 h-6 text-white" />
+                      </div>
+                      <h3 className="font-semibold text-foreground mb-2">{round.title}</h3>
+                      <p className="text-sm text-muted-foreground">{round.description}</p>
+                      
+                      {isSelected && (
+                        <div className="absolute top-4 right-4">
+                          <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                            <svg className="w-4 h-4 text-primary-foreground" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                              <path d="M5 13l4 4L19 7"></path>
+                            </svg>
+                          </div>
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Job Details */}
+          <Card className="glass-card border-border/50 animate-fade-up" style={{ animationDelay: '0.1s' }}>
+            <CardContent className="p-6 space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="jobTitle" className="flex items-center gap-2 text-foreground">
                   <Briefcase className="w-4 h-4 text-primary" />
@@ -158,7 +257,7 @@ const InterviewSetup = ({ onBack, onStart }: InterviewSetupProps) => {
                   value={formData.jobDescription}
                   onChange={(e) => setFormData({ ...formData, jobDescription: e.target.value })}
                   maxLength={maxDescriptionLength}
-                  className="min-h-[200px] resize-none bg-card border-border/50 focus:border-primary focus:ring-primary/20"
+                  className="min-h-[150px] resize-none bg-card border-border/50 focus:border-primary focus:ring-primary/20"
                 />
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>Adding a job description helps generate more relevant questions</span>
@@ -170,7 +269,7 @@ const InterviewSetup = ({ onBack, onStart }: InterviewSetupProps) => {
 
               <Button
                 type="submit"
-                disabled={loading || !formData.jobTitle.trim()}
+                disabled={loading || !formData.jobTitle.trim() || !formData.roundType}
                 className="w-full h-12 gradient-hero text-primary-foreground border-0 text-base font-medium hover:opacity-90 shadow-glow"
               >
                 {loading ? (
@@ -185,35 +284,39 @@ const InterviewSetup = ({ onBack, onStart }: InterviewSetupProps) => {
                   </>
                 )}
               </Button>
-            </form>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Tips */}
-        <div className="mt-8 glass-card p-6 rounded-2xl border border-border/50 animate-fade-up" style={{ animationDelay: '0.2s' }}>
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 bg-secondary/20 rounded-xl flex items-center justify-center shrink-0">
-              <Lightbulb className="w-5 h-5 text-secondary" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-foreground mb-2">Tips for better questions</h3>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li className="flex items-center gap-2">
-                  <Zap className="w-3 h-3 text-primary" />
-                  Be specific with the job title (e.g., "Senior Frontend Engineer" vs "Developer")
-                </li>
-                <li className="flex items-center gap-2">
-                  <Zap className="w-3 h-3 text-primary" />
-                  Include the full job description for industry-specific questions
-                </li>
-                <li className="flex items-center gap-2">
-                  <Zap className="w-3 h-3 text-primary" />
-                  Mention any specific technologies or skills required
-                </li>
-              </ul>
+          {/* Tips */}
+          <div className="glass-card p-6 rounded-2xl border border-border/50 animate-fade-up" style={{ animationDelay: '0.2s' }}>
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 bg-secondary/20 rounded-xl flex items-center justify-center shrink-0">
+                <Lightbulb className="w-5 h-5 text-secondary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground mb-2">Tips for better preparation</h3>
+                <ul className="text-sm text-muted-foreground space-y-2">
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-0.5">•</span>
+                    <span><strong>Behavioral:</strong> Use the STAR method (Situation, Task, Action, Result)</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-0.5">•</span>
+                    <span><strong>Coding:</strong> Think out loud and explain your approach</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-0.5">•</span>
+                    <span><strong>DSA:</strong> Discuss time and space complexity</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-0.5">•</span>
+                    <span><strong>System Design:</strong> Start with requirements and constraints</span>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
-        </div>
+        </form>
       </main>
     </div>
   );
