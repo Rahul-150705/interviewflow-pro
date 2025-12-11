@@ -156,5 +156,24 @@ export const api = {
       console.error('PDF download error:', error);
       throw error;
     }
+  },
+
+  // Compiler API methods
+  async executeCode(sourceCode: string, language: string, stdin: string = '') {
+    return this.request('/compiler/execute', {
+      method: 'POST',
+      body: JSON.stringify({ sourceCode, language, stdin })
+    });
+  },
+
+  async getSupportedLanguages() {
+    return this.request('/compiler/languages');
+  },
+
+  async testCode(sourceCode: string, language: string, testCases: Array<{ input: string; expectedOutput: string }>) {
+    return this.request('/compiler/test', {
+      method: 'POST',
+      body: JSON.stringify({ sourceCode, language, testCases })
+    });
   }
 };

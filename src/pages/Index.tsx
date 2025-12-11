@@ -8,6 +8,7 @@ import ResumeAnalyzerPage from '@/components/ResumeAnalyzerPage';
 import ResumeUpload from '@/components/ResumeUpload';
 import InterviewSetup from '@/components/InterviewSetup';
 import InterviewSession from '@/components/InterviewSession';
+import CodingInterviewSession from '@/components/CodingInterviewSession';
 import ResultsPage from '@/components/ResultsPage';
 
 type AppView = 'landing' | 'auth' | 'dashboard' | 'resume' | 'setup' | 'interview' | 'results';
@@ -23,6 +24,7 @@ interface Interview {
   id: string;
   questions: Question[];
   jobTitle: string;
+  roundType?: string;
 }
 
 interface FeedbackResult {
@@ -153,8 +155,29 @@ const Index = () => {
     );
   }
 
-  // Interview session
+  // Interview session - Choose between coding or regular based on round type
   if (view === 'interview' && currentInterview) {
+    const isCodingRound = currentInterview.roundType?.toUpperCase() === 'CODING';
+    
+    if (isCodingRound) {
+      return (
+        <CodingInterviewSession
+          interview={currentInterview}
+          onComplete={(results) => {
+            setInterviewResults({
+              ...results,
+              interviewId: currentInterview.id
+            });
+            setView('results');
+          }}
+          onExit={() => {
+            setCurrentInterview(null);
+            setView('dashboard');
+          }}
+        />
+      );
+    }
+    
     return (
       <InterviewSession
         interview={currentInterview}
