@@ -11,7 +11,7 @@ import InterviewSession from '@/components/InterviewSession';
 import ResultsPage from '@/components/ResultsPage';
 
 type AppView = 'landing' | 'auth' | 'dashboard' | 'resume' | 'setup' | 'interview' | 'results';
-type DashboardView = 'ai-interview' | 'resume-analyzer';
+type DashboardView = 'dashboard' | 'ai-interview' | 'resume-analyzer';
 type AuthMode = 'login' | 'register';
 
 interface Question {
@@ -40,7 +40,7 @@ interface InterviewResults {
 const Index = () => {
   const { user, isLoading } = useAuth();
   const [view, setView] = useState<AppView>('landing');
-  const [dashboardView, setDashboardView] = useState<DashboardView>('ai-interview');
+  const [dashboardView, setDashboardView] = useState<DashboardView>('dashboard');
   const [authMode, setAuthMode] = useState<AuthMode>('register');
   const [currentInterview, setCurrentInterview] = useState<Interview | null>(null);
   const [interviewResults, setInterviewResults] = useState<InterviewResults | null>(null);
@@ -117,9 +117,13 @@ const Index = () => {
         currentView={dashboardView}
         onViewChange={setDashboardView}
       >
-        {dashboardView === 'ai-interview' ? (
+        {dashboardView === 'dashboard' && (
           <Dashboard onStartInterview={() => setView('resume')} />
-        ) : (
+        )}
+        {dashboardView === 'ai-interview' && (
+          <Dashboard onStartInterview={() => setView('resume')} />
+        )}
+        {dashboardView === 'resume-analyzer' && (
           <ResumeAnalyzerPage />
         )}
       </DashboardWithSidebar>
@@ -197,9 +201,13 @@ const Index = () => {
       currentView={dashboardView}
       onViewChange={setDashboardView}
     >
-      {dashboardView === 'ai-interview' ? (
+      {dashboardView === 'dashboard' && (
         <Dashboard onStartInterview={() => setView('resume')} />
-      ) : (
+      )}
+      {dashboardView === 'ai-interview' && (
+        <Dashboard onStartInterview={() => setView('resume')} />
+      )}
+      {dashboardView === 'resume-analyzer' && (
         <ResumeAnalyzerPage />
       )}
     </DashboardWithSidebar>
