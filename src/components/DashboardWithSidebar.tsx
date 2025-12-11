@@ -5,7 +5,6 @@ import {
   Brain,
   LogOut,
   User,
-  Settings,
   MessageSquare,
   FileText,
   Menu,
@@ -90,32 +89,8 @@ const DashboardWithSidebar = ({ currentView, onViewChange, children }: Dashboard
                 <span className="text-xl font-bold gradient-text">MockInterview AI</span>
               </div>
               
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2 hover:bg-card">
-                    <div className="w-8 h-8 gradient-primary rounded-full flex items-center justify-center shadow-glow">
-                      <User className="w-4 h-4 text-primary-foreground" />
-                    </div>
-                    <span className="hidden sm:inline text-foreground">{user?.email}</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 glass-card border-border/50">
-                  <div className="px-2 py-1.5">
-                    <p className="text-sm font-medium text-foreground">{user?.name || 'User'}</p>
-                    <p className="text-xs text-muted-foreground">{user?.email}</p>
-                  </div>
-                  <DropdownMenuSeparator className="bg-border/50" />
-                  <DropdownMenuItem className="focus:bg-card">
-                    <Settings className="w-4 h-4 mr-2" />
-                    Settings
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-border/50" />
-                  <DropdownMenuItem onClick={logout} className="text-destructive focus:text-destructive focus:bg-destructive/10">
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {/* Empty space - profile moved to sidebar */}
+              <div className="w-8 h-8" />
             </div>
           </div>
         </header>
@@ -123,7 +98,7 @@ const DashboardWithSidebar = ({ currentView, onViewChange, children }: Dashboard
         <div className="flex relative z-10">
           {/* Sidebar */}
           <aside className={`
-            fixed lg:sticky top-16 left-0 h-[calc(100vh-4rem)] 
+            fixed lg:sticky top-16 left-0 h-[calc(100vh-4rem)] flex flex-col
             glass-card border-r border-border/50 p-4 transition-all duration-300 z-40
             ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
             ${sidebarCollapsed ? 'w-20' : 'w-64'}
@@ -189,6 +164,50 @@ const DashboardWithSidebar = ({ currentView, onViewChange, children }: Dashboard
 
                 return buttonContent;
               })}
+
+              {/* Profile Section - Right below navigation */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  {sidebarCollapsed ? (
+                    <Tooltip delayDuration={0}>
+                      <TooltipTrigger asChild>
+                        <button className="w-full flex items-center justify-center p-2 rounded-xl hover:bg-card transition-all mt-2">
+                          <div className="w-8 h-8 gradient-primary rounded-full flex items-center justify-center shadow-glow">
+                            <User className="w-4 h-4 text-primary-foreground" />
+                          </div>
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="glass-card border-border/50">
+                        <p className="font-medium">Profile</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-card transition-all mt-2">
+                      <div className="w-8 h-8 gradient-primary rounded-full flex items-center justify-center shadow-glow flex-shrink-0">
+                        <User className="w-4 h-4 text-primary-foreground" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p className="text-sm font-medium text-foreground">Profile</p>
+                        <p className="text-xs text-muted-foreground">Account settings</p>
+                      </div>
+                    </button>
+                  )}
+                </DropdownMenuTrigger>
+                <DropdownMenuContent side="right" align="start" className="w-56 glass-card border-border/50 bg-card">
+                  <div className="px-3 py-2">
+                    <p className="text-sm font-medium text-foreground">{user?.name || 'User'}</p>
+                    <p className="text-xs text-muted-foreground">{user?.email}</p>
+                  </div>
+                  <DropdownMenuSeparator className="bg-border/50" />
+                  <DropdownMenuItem 
+                    onClick={logout}
+                    className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </nav>
           </aside>
 
