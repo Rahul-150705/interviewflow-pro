@@ -49,31 +49,39 @@ const InterviewSetup = ({ onBack, onStart }: InterviewSetupProps) => {
   const rounds = [
     {
       type: 'BEHAVIORAL' as RoundType,
-      title: 'Behavioral Round',
-      description: 'Leadership, teamwork, and problem-solving scenarios',
+      title: 'Behavioral',
+      description: 'Leadership, teamwork & problem-solving',
       icon: Users,
-      color: 'from-blue-500 to-indigo-500'
+      gradient: 'from-primary/20 to-primary/5',
+      iconBg: 'bg-primary/20',
+      borderColor: 'border-primary/30'
     },
     {
       type: 'CODING' as RoundType,
-      title: 'Coding Round',
-      description: 'Practical coding problems and implementation',
+      title: 'Coding',
+      description: 'Practical coding & implementation',
       icon: Code,
-      color: 'from-green-500 to-emerald-500'
+      gradient: 'from-primary/20 to-primary/5',
+      iconBg: 'bg-primary/20',
+      borderColor: 'border-primary/30'
     },
     {
       type: 'DSA' as RoundType,
-      title: 'DSA Round',
-      description: 'Data structures, algorithms, and complexity',
+      title: 'DSA',
+      description: 'Data structures & algorithms',
       icon: Database,
-      color: 'from-purple-500 to-pink-500'
+      gradient: 'from-primary/20 to-primary/5',
+      iconBg: 'bg-primary/20',
+      borderColor: 'border-primary/30'
     },
     {
       type: 'SYSTEM_DESIGN' as RoundType,
       title: 'System Design',
-      description: 'Architecture, scalability, and distributed systems',
+      description: 'Architecture & scalability',
       icon: Network,
-      color: 'from-orange-500 to-red-500'
+      gradient: 'from-primary/20 to-primary/5',
+      iconBg: 'bg-primary/20',
+      borderColor: 'border-primary/30'
     }
   ];
 
@@ -184,12 +192,12 @@ const InterviewSetup = ({ onBack, onStart }: InterviewSetupProps) => {
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Interview Round Selection */}
-          <Card className="glass-card border-border/50 animate-fade-up">
+          <Card className="glass-card border-border/50 animate-fade-up overflow-hidden">
             <CardContent className="p-6">
-              <Label className="text-lg font-semibold text-foreground mb-4 block">
+              <Label className="text-lg font-semibold text-foreground mb-6 block">
                 Select Interview Round
               </Label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {rounds.map((round) => {
                   const Icon = round.icon;
                   const isSelected = formData.roundType === round.type;
@@ -200,23 +208,32 @@ const InterviewSetup = ({ onBack, onStart }: InterviewSetupProps) => {
                       type="button"
                       onClick={() => setFormData({ ...formData, roundType: round.type })}
                       className={`
-                        relative p-6 rounded-xl text-left transition-all duration-300
+                        group relative flex flex-col items-center p-5 rounded-2xl text-center transition-all duration-300 overflow-hidden
                         ${isSelected 
-                          ? 'glass-card border-2 border-primary shadow-glow' 
-                          : 'glass-card border border-border/50 hover:border-primary/50'
+                          ? 'bg-primary/10 border-2 border-primary shadow-glow scale-[1.02]' 
+                          : 'bg-card/50 border border-border/50 hover:border-primary/50 hover:bg-primary/5'
                         }
                       `}
                     >
-                      <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${round.color} flex items-center justify-center mb-4`}>
-                        <Icon className="w-6 h-6 text-white" />
-                      </div>
-                      <h3 className="font-semibold text-foreground mb-2">{round.title}</h3>
-                      <p className="text-sm text-muted-foreground">{round.description}</p>
+                      {/* Background glow effect */}
+                      <div className={`absolute inset-0 bg-gradient-to-b ${round.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${isSelected ? 'opacity-100' : ''}`} />
                       
+                      {/* Icon container */}
+                      <div className={`relative z-10 w-14 h-14 rounded-xl ${round.iconBg} flex items-center justify-center mb-3 transition-all duration-300 ${isSelected ? 'bg-primary shadow-glow' : 'group-hover:bg-primary/30'}`}>
+                        <Icon className={`w-7 h-7 transition-colors duration-300 ${isSelected ? 'text-primary-foreground' : 'text-primary'}`} />
+                      </div>
+                      
+                      {/* Title */}
+                      <h3 className="relative z-10 font-semibold text-foreground text-sm mb-1">{round.title}</h3>
+                      
+                      {/* Description */}
+                      <p className="relative z-10 text-xs text-muted-foreground leading-tight">{round.description}</p>
+                      
+                      {/* Selection indicator */}
                       {isSelected && (
-                        <div className="absolute top-4 right-4">
-                          <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
-                            <svg className="w-4 h-4 text-primary-foreground" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                        <div className="absolute top-2 right-2 z-20">
+                          <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center shadow-glow">
+                            <svg className="w-3 h-3 text-primary-foreground" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24" stroke="currentColor">
                               <path d="M5 13l4 4L19 7"></path>
                             </svg>
                           </div>
