@@ -71,7 +71,7 @@ const CodeEditor = ({ question, onSubmit }: CodeEditorProps) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(token && { Authorization: `Bearer ${token}` })
+          ...(token && { Authorization:`Bearer ${token}` })
         },
         body: JSON.stringify({
           sourceCode: code,

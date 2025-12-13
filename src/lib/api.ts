@@ -1,16 +1,16 @@
 const API_BASE = 'http://localhost:8080/api';
 
 // API Service
-export const api = {
-  
+export const api = {  
   async request(endpoint: string, options: RequestInit = {}) {
+    endpoint = endpoint.trim();
     const token = localStorage.getItem('token');
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(token && { Authorization: `Bearer ${token}` }),
       ...(options.headers as Record<string, string>)
     };
-
+    
     try {
       const response = await fetch(`${API_BASE}${endpoint}`, {
         ...options,
