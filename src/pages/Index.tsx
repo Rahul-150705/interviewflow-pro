@@ -1,19 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import LandingPage from '@/components/LandingPage';
 import AuthPage from '@/components/AuthPage';
-import Dashboard from '@/components/Dashboard';
 import DashboardWithSidebar from '@/components/DashboardWithSidebar';
-import ResumeAnalyzerPage from '@/components/ResumeAnalyzerPage';
+import Dashboard from '@/components/Dashboard';
 import ResumeUpload from '@/components/ResumeUpload';
 import InterviewSetup from '@/components/InterviewSetup';
 import InterviewSession from '@/components/InterviewSession';
 import CodingInterviewSession from '@/components/CodingInterviewSession';
 import ResultsPage from '@/components/ResultsPage';
+import ResumeAnalyzerPage from '@/components/ResumeAnalyzerPage';
 
-type AppView = 'landing' | 'auth' | 'dashboard' | 'resume' | 'setup' | 'interview' | 'results';
-type DashboardView = 'dashboard' | 'ai-interview' | 'resume-analyzer';
-type AuthMode = 'login' | 'register';
+type Page = 
+  | 'landing' 
+  | 'auth' 
+  | 'dashboard' 
+  | 'resume-upload' 
+  | 'interview-setup' 
+  | 'interview-session'
+  | 'coding-interview-session'
+  | 'results'
+  | 'ai-interview'
+  | 'resume-analyzer';
 
 interface Question {
   id: string | number;
@@ -24,7 +32,7 @@ interface Interview {
   id: string;
   questions: Question[];
   jobTitle: string;
-  roundType?: string;
+  roundType?: string; // Added roundType to track interview type
 }
 
 interface FeedbackResult {
@@ -32,209 +40,186 @@ interface FeedbackResult {
   aiFeedback: string;
 }
 
-interface InterviewResults {
-  questions: Question[];
-  answers: string[];
-  feedbacks: FeedbackResult[];
-  interviewId: string;
-}
-
 const Index = () => {
   const { user, isLoading } = useAuth();
-  const [view, setView] = useState<AppView>('landing');
-  const [dashboardView, setDashboardView] = useState<DashboardView>('dashboard');
-  const [authMode, setAuthMode] = useState<AuthMode>('register');
+  const [currentPage, setCurrentPage] = useState<Page>('landing');
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('register');
   const [currentInterview, setCurrentInterview] = useState<Interview | null>(null);
-  const [interviewResults, setInterviewResults] = useState<InterviewResults | null>(null);
+  const [interviewResults, setInterviewResults] = useState<{
+    questions: Question[];
+    answers: string[];
+    feedbacks: FeedbackResult[];
+  } | null>(null);
 
-  // Update view when auth state changes
-  useEffect(() => {
-    if (!isLoading) {
-      if (user && view === 'landing') {
-        setView('dashboard');
-      }
-      if (user && view === 'auth') {
-        setView('dashboard');
-      }
-      if (!user && !['landing', 'auth'].includes(view)) {
-        setView('landing');
-      }
+  const handleStartInterview = () => {
+    setCurrentPage('resume-upload');
+  };
+
+  const handleResumeUploadContinue = () => {
+    setCurrentPage('interview-setup');
+  };
+
+  const handleInterviewSetupStart = (interview: Interview) => {
+    console.log('=== Interview Started ===');
+    console.log('Round Type:', interview.roundType);
+    console.log('Job Title:', interview.jobTitle);
+    console.log('Questions:', interview.questions.length);
+    
+    setCurrentInterview(interview);
+    
+    // ✅ Route to correct interview session based on round type
+    if (interview.roundType === 'CODING' || interview.roundType === 'DSA') {
+      console.log('✓ Routing to CODING Interview Session (with compiler)');
+      setCurrentPage('coding-interview-session');
+    } else {
+      console.log('✓ Routing to BEHAVIORAL/SYSTEM_DESIGN Interview Session (text-based)');
+      setCurrentPage('interview-session');
     }
-  }, [isLoading, user, view]);
+  };
+
+  const handleInterviewComplete = (results: {
+    questions: Question[];
+    answers: string[];
+    feedbacks: FeedbackResult[];
+  }) => {
+    setInterviewResults(results);
+    setCurrentPage('results');
+  };
+
+  const handleNewInterview = () => {
+    setCurrentInterview(null);
+    setInterviewResults(null);
+    setCurrentPage('resume-upload');
+  };
+
+  const handleBackToDashboard = () => {
+    setCurrentInterview(null);
+    setInterviewResults(null);
+    setCurrentPage('dashboard');
+  };
+
+  const handleViewChange = (view: 'dashboard' | 'ai-interview' | 'resume-analyzer') => {
+    setCurrentPage(view);
+  };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-12 h-12 gradient-primary rounded-xl animate-pulse" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
       </div>
     );
   }
 
-  // Landing page
-  if (view === 'landing') {
-    return (
-      <LandingPage
-        onGetStarted={() => {
-          setAuthMode('register');
-          setView('auth');
-        }}
-        onLogin={() => {
-          setAuthMode('login');
-          setView('auth');
-        }}
-      />
-    );
-  }
-
-  // Auth page
-  if (view === 'auth') {
-    return (
-      <AuthPage
-        onBack={() => setView('landing')}
-        defaultMode={authMode}
-      />
-    );
-  }
-
-  // Protected views - require authentication
+  // Not authenticated - show landing or auth
   if (!user) {
+    if (currentPage === 'auth') {
+      return (
+        <AuthPage
+          onBack={() => setCurrentPage('landing')}
+          defaultMode={authMode}
+        />
+      );
+    }
+
     return (
       <LandingPage
         onGetStarted={() => {
           setAuthMode('register');
-          setView('auth');
+          setCurrentPage('auth');
         }}
         onLogin={() => {
           setAuthMode('login');
-          setView('auth');
+          setCurrentPage('auth');
         }}
       />
     );
   }
 
-  // Dashboard with sidebar navigation
-  if (view === 'dashboard') {
+  // Authenticated - show app pages with sidebar for main views
+  const mainViews: Page[] = ['dashboard', 'ai-interview', 'resume-analyzer'];
+  
+  if (mainViews.includes(currentPage)) {
     return (
-      <DashboardWithSidebar 
-        currentView={dashboardView}
-        onViewChange={setDashboardView}
+      <DashboardWithSidebar
+        currentView={currentPage as 'dashboard' | 'ai-interview' | 'resume-analyzer'}
+        onViewChange={handleViewChange}
       >
-        {dashboardView === 'dashboard' && (
-          <Dashboard onStartInterview={() => setView('resume')} />
+        {currentPage === 'dashboard' && (
+          <Dashboard onStartInterview={handleStartInterview} />
         )}
-        {dashboardView === 'ai-interview' && (
-          <Dashboard onStartInterview={() => setView('resume')} />
+        {currentPage === 'ai-interview' && (
+          <div className="p-8">
+            <Dashboard onStartInterview={handleStartInterview} />
+          </div>
         )}
-        {dashboardView === 'resume-analyzer' && (
+        {currentPage === 'resume-analyzer' && (
           <ResumeAnalyzerPage />
         )}
       </DashboardWithSidebar>
     );
   }
 
-  // Resume upload (for AI Interview flow)
-  if (view === 'resume') {
-    return (
-      <ResumeUpload
-        onBack={() => setView('dashboard')}
-        onContinue={() => setView('setup')}
-      />
-    );
-  }
-
-  // Interview setup
-  if (view === 'setup') {
-    return (
-      <InterviewSetup
-        onBack={() => setView('resume')}
-        onStart={(interview) => {
-          setCurrentInterview(interview);
-          setView('interview');
-        }}
-      />
-    );
-  }
-
-  // Interview session - Choose between coding or regular based on round type
-  if (view === 'interview' && currentInterview) {
-    const isCodingRound = currentInterview.roundType?.toUpperCase() === 'CODING';
-    
-    if (isCodingRound) {
+  // Interview flow pages (without sidebar)
+  switch (currentPage) {
+    case 'resume-upload':
       return (
-        <CodingInterviewSession
-          interview={currentInterview}
-          onComplete={(results) => {
-            setInterviewResults({
-              ...results,
-              interviewId: currentInterview.id
-            });
-            setView('results');
-          }}
-          onExit={() => {
-            setCurrentInterview(null);
-            setView('dashboard');
-          }}
+        <ResumeUpload
+          onBack={handleBackToDashboard}
+          onContinue={handleResumeUploadContinue}
         />
       );
-    }
-    
-    return (
-      <InterviewSession
-        interview={currentInterview}
-        onComplete={(results) => {
-          setInterviewResults({
-            ...results,
-            interviewId: currentInterview.id
-          });
-          setView('results');
-        }}
-        onExit={() => {
-          setCurrentInterview(null);
-          setView('dashboard');
-        }}
-      />
-    );
-  }
 
-  // Results page
-  if (view === 'results' && interviewResults) {
-    return (
-      <ResultsPage
-        questions={interviewResults.questions}
-        answers={interviewResults.answers}
-        feedbacks={interviewResults.feedbacks}
-        interviewId={interviewResults.interviewId}
-        onNewInterview={() => {
-          setCurrentInterview(null);
-          setInterviewResults(null);
-          setView('resume');
-        }}
-        onDashboard={() => {
-          setCurrentInterview(null);
-          setInterviewResults(null);
-          setView('dashboard');
-        }}
-      />
-    );
-  }
+    case 'interview-setup':
+      return (
+        <InterviewSetup
+          onBack={() => setCurrentPage('resume-upload')}
+          onStart={handleInterviewSetupStart}
+        />
+      );
 
-  // Default to dashboard
-  return (
-    <DashboardWithSidebar 
-      currentView={dashboardView}
-      onViewChange={setDashboardView}
-    >
-      {dashboardView === 'dashboard' && (
-        <Dashboard onStartInterview={() => setView('resume')} />
-      )}
-      {dashboardView === 'ai-interview' && (
-        <Dashboard onStartInterview={() => setView('resume')} />
-      )}
-      {dashboardView === 'resume-analyzer' && (
-        <ResumeAnalyzerPage />
-      )}
-    </DashboardWithSidebar>
-  );
+    case 'interview-session':
+      return currentInterview ? (
+        <InterviewSession
+          interview={currentInterview}
+          onComplete={handleInterviewComplete}
+          onExit={handleBackToDashboard}
+        />
+      ) : null;
+
+    case 'coding-interview-session':
+      return currentInterview ? (
+        <CodingInterviewSession
+          interview={currentInterview}
+          onComplete={handleInterviewComplete}
+          onExit={handleBackToDashboard}
+        />
+      ) : null;
+
+    case 'results':
+      return interviewResults ? (
+        <ResultsPage
+          questions={interviewResults.questions}
+          answers={interviewResults.answers}
+          feedbacks={interviewResults.feedbacks}
+          interviewId={currentInterview?.id}
+          onNewInterview={handleNewInterview}
+          onDashboard={handleBackToDashboard}
+        />
+      ) : null;
+
+    default:
+      return (
+        <DashboardWithSidebar
+          currentView="dashboard"
+          onViewChange={handleViewChange}
+        >
+          <Dashboard onStartInterview={handleStartInterview} />
+        </DashboardWithSidebar>
+      );
+  }
 };
 
 export default Index;

@@ -79,17 +79,40 @@ export const api = {
     return this.request(url).then((data: { resumes?: unknown[] }) => data.resumes || []);
   },
 
-  startInterview(jobTitle: string, jobDescription: string, roundType: string) {
+  async startInterview(jobTitle: string, jobDescription: string, roundType: string) {
+    console.log('=== API: Starting Interview ===');
+    console.log('Job Title:', jobTitle);
+    console.log('Round Type:', roundType);
+    console.log('Job Description length:', jobDescription?.length || 0);
+    
     const userStr = localStorage.getItem('user');
     const user = userStr ? JSON.parse(userStr) : null;
     
-    const body = { jobTitle, jobDescription, roundType };
+    const body = { 
+      jobTitle, 
+      jobDescription, 
+      roundType  // ✅ Make sure roundType is sent
+    };
+    
+    console.log('Request body:', body);
+    
     const url = user?.id ? `/interview/start?userId=${user.id}` : '/interview/start';
     
-    return this.request(url, {
+    const response = await this.request(url, {
       method: 'POST',
       body: JSON.stringify(body)
     });
+    
+    console.log('=== API Response ===');
+    console.log('Interview ID:', response.id);
+    console.log('Questions:', response.questions?.length);
+    console.log('Round Type in response:', response.roundType);
+    
+    // ✅ Ensure roundType is preserved in the response
+    return {
+      ...response,
+      roundType: roundType // Make sure it's included even if backend doesn't return it
+    };
   },
 
   submitAnswer(questionId: string | number, answer: string) {
@@ -160,10 +183,18 @@ export const api = {
 
   // Compiler API methods
   async executeCode(sourceCode: string, language: string, stdin: string = '') {
-    return this.request('/compiler/execute', {
+    console.log('=== API: Execute Code ===');
+    console.log('Language:', language);
+    console.log('Code length:', sourceCode?.length);
+    console.log('Stdin:', stdin);
+    
+    const response = await this.request('/compiler/execute', {
       method: 'POST',
       body: JSON.stringify({ sourceCode, language, stdin })
     });
+    
+    console.log('Execution response:', response);
+    return response;
   },
 
   async getSupportedLanguages() {
