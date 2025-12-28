@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { api } from '@/lib/api';
 import VoiceAssistant from '@/components/VoiceAssistant';
+import VoiceChatPanel from '@/components/VoiceChatPanel';
 import { 
   ArrowLeft,
   ArrowRight,
@@ -149,6 +150,10 @@ const InterviewSession = ({ interview, onComplete, onExit }: InterviewSessionPro
     return 'text-destructive';
   };
 
+  const handleSubmit = () => {
+    handleSubmitAnswer();
+  };
+
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       {/* Background Effects */}
@@ -218,7 +223,44 @@ const InterviewSession = ({ interview, onComplete, onExit }: InterviewSessionPro
                     </h2>
                   </div>
                 </div>
+                 <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5 p-8">
+    <div className="max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="mb-8">
+        {/* ... existing header ... */}
+      </div>
 
+      {/* Layout with Voice Chat */}
+      <div className="grid lg:grid-cols-[1fr_350px] gap-6">
+        
+        {/* Main Interview Area */}
+        <div className="space-y-6">
+          {/* Question */}
+          <Card className="p-8 glass-card">
+            {/* ... your existing question ... */}
+          </Card>
+
+          {/* Answer Input */}
+          <Card className="p-6 glass-card">
+            {/* ... your existing textarea ... */}
+          </Card>
+
+          {/* Submit Button */}
+          <Button onClick={handleSubmit}>
+            Submit Answer
+          </Button>
+        </div>
+
+        {/* ✅ Voice Chat Panel */}
+        <div className="lg:sticky lg:top-8 h-fit">
+          <VoiceChatPanel 
+            interviewId={interview.id}
+            className="h-[600px]"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
                 {currentFeedback ? (
                   <div className="animate-scale-in space-y-4">
                     <div className="p-4 glass-card rounded-xl border border-border/50">

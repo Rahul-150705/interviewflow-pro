@@ -91,7 +91,7 @@ export const api = {
     const body = { 
       jobTitle, 
       jobDescription, 
-      roundType  // ✅ Make sure roundType is sent
+      roundType
     };
     
     console.log('Request body:', body);
@@ -108,10 +108,9 @@ export const api = {
     console.log('Questions:', response.questions?.length);
     console.log('Round Type in response:', response.roundType);
     
-    // ✅ Ensure roundType is preserved in the response
     return {
       ...response,
-      roundType: roundType // Make sure it's included even if backend doesn't return it
+      roundType: roundType
     };
   },
 
@@ -179,6 +178,29 @@ export const api = {
       console.error('PDF download error:', error);
       throw error;
     }
+  },
+
+  // ✅ Voice Interview API methods
+  async submitVoiceAnswer(questionId: string | number, userAnswer: string, questionText?: string) {
+    console.log('=== API: Submit Voice Answer ===');
+    console.log('Question ID:', questionId);
+    console.log('Answer length:', userAnswer.length);
+    
+    const response = await this.request('/voice-interview/process', {
+      method: 'POST',
+      body: JSON.stringify({
+        questionId,
+        questionText,
+        userAnswer
+      })
+    });
+    
+    console.log('Voice answer response:', response);
+    return response;
+  },
+
+  async getQuestionTextForVoice(questionId: string | number) {
+    return this.request(`/voice-interview/${questionId}/text`);
   },
 
   // Compiler API methods
