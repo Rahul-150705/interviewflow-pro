@@ -4,13 +4,16 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { api } from '@/lib/api';
 import CodeEditor from '@/components/CodeEditor';
+import VoiceAssistant from '@/components/VoiceAssistant';
 import { 
   ArrowLeft,
   ArrowRight,
   CheckCircle2,
   Clock,
   Save,
-  Code
+  Code,
+  Mic,
+  MicOff
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -43,6 +46,7 @@ const CodingInterviewSession = ({ interview, onComplete, onExit }: CodingIntervi
   const [feedbacks, setFeedbacks] = useState<(FeedbackResult | null)[]>(new Array(interview.questions.length).fill(null));
   const [elapsedTime, setElapsedTime] = useState(0);
   const [autoSaved, setAutoSaved] = useState(false);
+  const [showVoicePanel, setShowVoicePanel] = useState(true);
   const { toast } = useToast();
 
   const questions = interview.questions;
@@ -85,7 +89,6 @@ const CodingInterviewSession = ({ interview, onComplete, onExit }: CodingIntervi
       return;
     }
 
-    // Combine code and language in answer
     const fullAnswer = `Language: ${language}\n\n${code}`;
 
     try {
@@ -97,7 +100,6 @@ const CodingInterviewSession = ({ interview, onComplete, onExit }: CodingIntervi
       };
       setFeedbacks(newFeedbacks);
 
-      // Update answers and languages
       const newAnswers = [...answers];
       newAnswers[currentIndex] = code;
       setAnswers(newAnswers);
@@ -282,8 +284,40 @@ const CodingInterviewSession = ({ interview, onComplete, onExit }: CodingIntervi
             </div>
           </div>
 
-          {/* Sidebar - Question Navigator */}
-          <div className="w-full lg:w-72 shrink-0">
+          {/* Sidebar - Voice Assistant & Question Navigator */}
+          <div className="w-full lg:w-80 shrink-0 space-y-4">
+            {/* Voice Assistant Toggle */}
+            <Button
+              onClick={() => setShowVoicePanel(!showVoicePanel)}
+              variant="outline"
+              className="w-full border-border/50 hover:border-primary/50 gap-2"
+            >
+              {showVoicePanel ? (
+                <>
+                  <MicOff className="w-4 h-4" />
+                  Hide Voice Assistant
+                </>
+              ) : (
+                <>
+                  <Mic className="w-4 h-4" />
+                  Show Voice Assistant
+                </>
+              )}
+            </Button>
+
+            {/* Voice Assistant Panel */}
+            {showVoicePanel && (
+              <div className="animate-fade-up">
+                <VoiceAssistant
+                  onTranscriptUpdate={(text) => {
+                    console.log('Voice transcript:', text);
+                    // You can use this to add voice notes or comments to your code
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Question Navigator */}
             <Card className="sticky top-24 glass-card border-border/50 animate-fade-up" style={{ animationDelay: '0.3s' }}>
               <CardContent className="p-4">
                 <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">

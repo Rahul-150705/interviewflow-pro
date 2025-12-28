@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { api } from '@/lib/api';
+import VoiceAssistant from '@/components/VoiceAssistant';
 import { 
   ArrowLeft,
   ArrowRight,
@@ -13,7 +14,9 @@ import {
   MessageSquare,
   Save,
   Sparkles,
-  Zap
+  Zap,
+  Mic,
+  MicOff
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -46,6 +49,7 @@ const InterviewSession = ({ interview, onComplete, onExit }: InterviewSessionPro
   const [loading, setLoading] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [autoSaved, setAutoSaved] = useState(false);
+  const [showVoicePanel, setShowVoicePanel] = useState(true);
   const { toast } = useToast();
 
   const questions = interview.questions;
@@ -93,7 +97,7 @@ const InterviewSession = ({ interview, onComplete, onExit }: InterviewSessionPro
       const newFeedbacks = [...feedbacks];
       newFeedbacks[currentIndex] = {
         ...result,
-        score: Math.round(result.score), // ✅ Round score here
+        score: Math.round(result.score),
       };
       setFeedbacks(newFeedbacks);
     } catch (err) {
@@ -131,6 +135,14 @@ const InterviewSession = ({ interview, onComplete, onExit }: InterviewSessionPro
     setAnswers(newAnswers);
   };
 
+  const handleVoiceTranscriptUpdate = (text: string) => {
+    // Append voice transcript to current answer
+    const newAnswers = [...answers];
+    const currentText = newAnswers[currentIndex];
+    newAnswers[currentIndex] = currentText ? `${currentText}\n\n[Voice Note]: ${text}` : `[Voice Note]: ${text}`;
+    setAnswers(newAnswers);
+  };
+
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-success';
     if (score >= 60) return 'text-warning';
@@ -149,7 +161,7 @@ const InterviewSession = ({ interview, onComplete, onExit }: InterviewSessionPro
 
       {/* Header */}
       <header className="sticky top-0 z-50 glass-card border-b border-border/50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <button
               onClick={onExit}
@@ -175,7 +187,7 @@ const InterviewSession = ({ interview, onComplete, onExit }: InterviewSessionPro
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main Content */}
           <div className="flex-1">
@@ -214,7 +226,7 @@ const InterviewSession = ({ interview, onComplete, onExit }: InterviewSessionPro
                         <span className="text-sm font-medium text-muted-foreground">Your Answer</span>
                         <CheckCircle2 className="w-5 h-5 text-success" />
                       </div>
-                      <p className="text-foreground">{currentAnswer}</p>
+                      <p className="text-foreground whitespace-pre-wrap">{currentAnswer}</p>
                     </div>
 
                     <div className="p-4 glass-card rounded-xl border border-primary/30 bg-primary/5">
@@ -224,7 +236,7 @@ const InterviewSession = ({ interview, onComplete, onExit }: InterviewSessionPro
                           <span className="text-sm font-medium text-foreground">AI Feedback</span>
                         </div>
                         <span className={`text-2xl font-bold ${getScoreColor(currentFeedback.score)}`}>
-                          {currentFeedback.score}/100 {/* ✅ Rounded */}
+                          {currentFeedback.score}/100
                         </span>
                       </div>
                       <p className="text-foreground">{currentFeedback.aiFeedback}</p>
@@ -235,7 +247,7 @@ const InterviewSession = ({ interview, onComplete, onExit }: InterviewSessionPro
                     <Textarea
                       value={currentAnswer}
                       onChange={(e) => updateAnswer(e.target.value)}
-                      placeholder="Type your answer here... Take your time to provide a thoughtful response."
+                      placeholder="Type your answer here... Take your time to provide a thoughtful response. You can also use voice input from the sidebar."
                       className="min-h-[200px] resize-none text-base bg-card border-border/50 focus:border-primary focus:ring-primary/20"
                     />
                     <div className="flex items-center justify-between">
@@ -295,8 +307,37 @@ const InterviewSession = ({ interview, onComplete, onExit }: InterviewSessionPro
             </div>
           </div>
 
-          {/* Sidebar - Question Navigator */}
-          <div className="w-full lg:w-72 shrink-0">
+          {/* Sidebar - Voice Assistant & Question Navigator */}
+          <div className="w-full lg:w-80 shrink-0 space-y-4">
+            {/* Voice Assistant Toggle */}
+            <Button
+              onClick={() => setShowVoicePanel(!showVoicePanel)}
+              variant="outline"
+              className="w-full border-border/50 hover:border-primary/50 gap-2"
+            >
+              {showVoicePanel ? (
+                <>
+                  <MicOff className="w-4 h-4" />
+                  Hide Voice Assistant
+                </>
+              ) : (
+                <>
+                  <Mic className="w-4 h-4" />
+                  Show Voice Assistant
+                </>
+              )}
+            </Button>
+
+            {/* Voice Assistant Panel */}
+            {showVoicePanel && (
+              <div className="animate-fade-up">
+                <VoiceAssistant
+                  onTranscriptUpdate={handleVoiceTranscriptUpdate}
+                />
+              </div>
+            )}
+
+            {/* Question Navigator */}
             <Card className="sticky top-24 glass-card border-border/50 animate-fade-up" style={{ animationDelay: '0.3s' }}>
               <CardContent className="p-4">
                 <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
