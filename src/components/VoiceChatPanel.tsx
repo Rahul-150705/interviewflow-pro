@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Mic, MicOff, Volume2, Send, Loader2 } from 'lucide-react';
+import { Mic, MicOff, Volume2, Send, Loader2, StopCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 
@@ -31,6 +31,7 @@ const VoiceChatPanel = ({ interviewId, className = '' }: VoiceChatPanelProps) =>
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const isSpeakingRef = useRef(false);
+  const isRecordingRef = useRef(false);
 
   // Initialize Speech Recognition and Synthesis
   useEffect(() => {
@@ -40,29 +41,63 @@ const VoiceChatPanel = ({ interviewId, className = '' }: VoiceChatPanelProps) =>
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
       
-      recognition.continuous = false;
+      // ✅ ENHANCED: Continuous recognition, keeps listening until manually stopped
+      recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = 'en-US';
+      recognition.maxAlternatives = 1;
 
       recognition.onresult = (event: any) => {
-        let transcript = '';
+        let interimTranscript = '';
+        let finalTranscript = '';
+
         for (let i = event.resultIndex; i < event.results.length; i++) {
-          transcript = event.results[i][0].transcript;
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript + ' ';
+          } else {
+            interimTranscript += transcript;
+          }
         }
-        setCurrentTranscript(transcript);
+
+        // ✅ FIXED: Only update state with FINAL transcripts
+        if (finalTranscript) {
+          setCurrentTranscript(prev => {
+            const updated = (prev + ' ' + finalTranscript).trim();
+            console.log('📝 Final transcript:', updated);
+            return updated;
+          });
+        }
+        // Don't update state with interim results to avoid word-by-word display
       };
 
       recognition.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
-        setIsRecording(false);
+        if (event.error !== 'no-speech' && event.error !== 'aborted') {
+          setIsRecording(false);
+          isRecordingRef.current = false;
+          toast({
+            title: 'Speech Recognition Error',
+            description: 'Please try again.',
+            variant: 'destructive'
+          });
+        }
       };
 
       recognition.onend = () => {
-        console.log('Recognition ended');
-        setIsRecording(false);
-        if (currentTranscript.trim()) {
-          sendMessage(currentTranscript.trim());
-          setCurrentTranscript('');
+        console.log('🛑 Recognition ended');
+        // ✅ ENHANCED: Auto-restart if still supposed to be recording
+        if (isRecordingRef.current) {
+          console.log('🔄 Auto-restarting recognition...');
+          try {
+            recognition.start();
+          } catch (error) {
+            console.log('Cannot restart, stopping recording');
+            setIsRecording(false);
+            isRecordingRef.current = false;
+          }
+        } else {
+          setIsRecording(false);
         }
       };
 
@@ -79,14 +114,14 @@ const VoiceChatPanel = ({ interviewId, className = '' }: VoiceChatPanelProps) =>
         synthRef.current.cancel();
       }
     };
-  }, [currentTranscript]);
+  }, []);
 
   // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // ✅ Speak text with better error handling
+  // ✅ Enhanced: Speak text with chunking for long messages
   const speakText = (text: string) => {
     if (!synthRef.current) {
       console.error('Speech synthesis not available');
@@ -160,6 +195,7 @@ const VoiceChatPanel = ({ interviewId, className = '' }: VoiceChatPanelProps) =>
     }, 100);
   };
 
+  // ✅ ENHANCED: Start recording with proper state management
   const startRecording = () => {
     if (!recognitionRef.current) {
       toast({
@@ -170,6 +206,7 @@ const VoiceChatPanel = ({ interviewId, className = '' }: VoiceChatPanelProps) =>
       return;
     }
 
+    // Stop any ongoing speech
     if (synthRef.current && isSpeakingRef.current) {
       synthRef.current.cancel();
       setIsSpeaking(false);
@@ -178,23 +215,47 @@ const VoiceChatPanel = ({ interviewId, className = '' }: VoiceChatPanelProps) =>
 
     setCurrentTranscript('');
     setIsRecording(true);
+    isRecordingRef.current = true;
 
     try {
       recognitionRef.current.start();
-      console.log('🎤 Started recording');
+      console.log('🎤 Started recording - speak now, click STOP when done');
+      toast({
+        title: 'Recording Started',
+        description: 'Speak your message. Click STOP when finished.',
+      });
     } catch (error) {
       console.error('Error starting recording:', error);
       setIsRecording(false);
+      isRecordingRef.current = false;
     }
   };
 
+  // ✅ ENHANCED: Stop recording and send message
   const stopRecording = () => {
     if (!recognitionRef.current) return;
+    
+    console.log('🛑 Manually stopping recording...');
+    isRecordingRef.current = false; // ✅ Prevent auto-restart
+    setIsRecording(false);
+    
     try {
       recognitionRef.current.stop();
-      console.log('🛑 Stopped recording');
     } catch (e) {
       console.log('Recognition already stopped');
+    }
+
+    // Send the accumulated transcript
+    const finalMessage = currentTranscript.trim();
+    if (finalMessage) {
+      console.log('📤 Sending final message:', finalMessage);
+      sendMessage(finalMessage);
+    } else {
+      toast({
+        title: 'No Speech Detected',
+        description: 'Please try speaking again.',
+        variant: 'destructive'
+      });
     }
   };
 
@@ -230,12 +291,10 @@ const VoiceChatPanel = ({ interviewId, className = '' }: VoiceChatPanelProps) =>
 
       let aiResponseText = '';
 
-      // Check if response is successful
       if (response && response.reply) {
         aiResponseText = response.reply;
         console.log('✅ Got AI reply:', aiResponseText);
       } else {
-        // Fallback message
         aiResponseText = "Sorry, the AI service is currently not available. Please check your OpenAI API key configuration or try again later.";
         console.log('⚠️ No valid response, using fallback');
       }
@@ -249,6 +308,7 @@ const VoiceChatPanel = ({ interviewId, className = '' }: VoiceChatPanelProps) =>
       };
       setMessages(prev => [...prev, aiMsg]);
 
+      // ✅ AUTO-SPEAK the AI reply
       console.log('🎙️ Speaking AI response...');
       setTimeout(() => {
         speakText(aiResponseText);
@@ -318,7 +378,7 @@ const VoiceChatPanel = ({ interviewId, className = '' }: VoiceChatPanelProps) =>
         </div>
       </div>
 
-      {/* Messages - Instagram Style */}
+      {/* Messages */}
       <div className="flex-1 p-4 overflow-y-auto space-y-3 min-h-[300px] max-h-[500px]">
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full text-center text-muted-foreground">
@@ -327,7 +387,7 @@ const VoiceChatPanel = ({ interviewId, className = '' }: VoiceChatPanelProps) =>
               <p className="text-sm font-medium">Start a conversation</p>
               <p className="text-xs mt-1">Type or speak to chat with AI</p>
               <p className="text-xs mt-2 text-primary">
-                💡 AI responds automatically with voice
+                💡 Click MIC and speak, click STOP when done
               </p>
             </div>
           </div>
@@ -367,13 +427,24 @@ const VoiceChatPanel = ({ interviewId, className = '' }: VoiceChatPanelProps) =>
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area - Voice Recording Status */}
+      {/* ✅ ENHANCED: Voice Recording Status with live transcript */}
       {currentTranscript && isRecording && (
         <div className="px-4 pb-2">
-          <div className="p-3 bg-primary/10 border border-primary/30 rounded-lg">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-              <span className="text-xs font-medium text-primary">Recording...</span>
+          <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                <span className="text-xs font-medium text-destructive">Recording... Click STOP to finish</span>
+              </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={stopRecording}
+                className="h-6 text-xs text-destructive hover:text-destructive"
+              >
+                <StopCircle className="h-3 w-3 mr-1" />
+                Stop
+              </Button>
             </div>
             <p className="text-sm">{currentTranscript}</p>
           </div>
@@ -402,24 +473,24 @@ const VoiceChatPanel = ({ interviewId, className = '' }: VoiceChatPanelProps) =>
           </Button>
         </div>
 
-        {/* Voice Button */}
+        {/* ✅ ENHANCED: Voice Button with clear START/STOP states */}
         <Button
           size="lg"
           onClick={isRecording ? stopRecording : startRecording}
           disabled={isProcessing || isSpeaking}
           className={`w-full ${
             isRecording 
-              ? 'bg-destructive hover:bg-destructive/90' 
+              ? 'bg-destructive hover:bg-destructive/90 animate-pulse' 
               : 'gradient-primary'
           }`}
         >
           {isRecording ? (
             <>
-              <div className="relative mr-2">
-                <MicOff className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 w-2 h-2 bg-white rounded-full animate-ping" />
+              <StopCircle className="h-5 w-5 mr-2" />
+              <div className="flex items-center gap-2">
+                <span>Stop Recording</span>
+                <div className="w-2 h-2 bg-white rounded-full animate-ping" />
               </div>
-              Stop Recording
             </>
           ) : isProcessing ? (
             <>
@@ -434,19 +505,19 @@ const VoiceChatPanel = ({ interviewId, className = '' }: VoiceChatPanelProps) =>
           ) : (
             <>
               <Mic className="h-5 w-5 mr-2" />
-              Hold to Speak
+              Start Speaking
             </>
           )}
         </Button>
         
         <p className="text-xs text-muted-foreground text-center">
           {isRecording 
-            ? '🔴 Recording... Release to send' 
+            ? '🔴 Recording... Click STOP when you finish speaking' 
             : isProcessing
             ? '⏳ Getting AI response...'
             : isSpeaking
-            ? '🔊 AI is speaking...'
-            : 'Type or speak to chat with AI assistant'}
+            ? '🔊 AI is speaking - replies automatically'
+            : '🎤 Click START, speak your full message, then click STOP'}
         </p>
       </div>
     </Card>

@@ -10,6 +10,7 @@ import InterviewSession from '@/components/InterviewSession';
 import CodingInterviewSession from '@/components/CodingInterviewSession';
 import ResultsPage from '@/components/ResultsPage';
 import ResumeAnalyzerPage from '@/components/ResumeAnalyzerPage';
+import VoiceInterviewSession from '@/components/VoiceInterviewSession';
 
 type Page = 
   | 'landing' 
@@ -21,6 +22,7 @@ type Page =
   | 'coding-interview-session'
   | 'results'
   | 'ai-interview'
+  | 'voice-interview-session'
   | 'resume-analyzer';
 
 interface Question {
@@ -171,6 +173,14 @@ const Index = () => {
           onContinue={handleResumeUploadContinue}
         />
       );
+    case 'voice-interview-session':
+  return currentInterview ? (
+    <VoiceInterviewSession
+      interview={currentInterview}
+      onComplete={handleInterviewComplete}
+      onExit={handleBackToDashboard}
+    />
+  ) : null;
 
     case 'interview-setup':
       return (
