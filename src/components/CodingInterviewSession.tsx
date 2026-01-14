@@ -4,15 +4,19 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { api } from '@/lib/api';
 import CodeEditor from '@/components/CodeEditor';
-import VoiceAssistant from '@/components/VoiceAssistant';
 import VoiceChatPanel from './VoiceChatPanel';
 import {
   ArrowLeft,
   ArrowRight,
+<<<<<<< HEAD
   CheckCircle2, Mic, MicOff, 
   Clock,
   Save,
  
+=======
+  Clock,
+  Save,
+>>>>>>> b9bfca325987fa655856f5df7ea35162a097dc08
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
