@@ -4,17 +4,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { api } from '@/lib/api';
 import CodeEditor from '@/components/CodeEditor';
-import VoiceAssistant from '@/components/VoiceAssistant';
 import VoiceChatPanel from './VoiceChatPanel';
 import {
   ArrowLeft,
   ArrowRight,
-  CheckCircle2,
   Clock,
   Save,
-  Code,
-  Mic,
-  MicOff,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -61,7 +56,6 @@ const CodingInterviewSession = ({
   );
   const [elapsedTime, setElapsedTime] = useState(0);
   const [autoSaved, setAutoSaved] = useState(false);
-  const [showVoicePanel, setShowVoicePanel] = useState(true);
 
   const { toast } = useToast();
   const questions = interview.questions;
@@ -223,24 +217,6 @@ const CodingInterviewSession = ({
 
         {/* RIGHT SIDEBAR */}
         <div className="space-y-4 sticky top-20 h-fit">
-          <Button
-            variant="outline"
-            onClick={() => setShowVoicePanel((v) => !v)}
-            className="w-full"
-          >
-            {showVoicePanel ? (
-              <>
-                <MicOff className="mr-2" /> Hide Voice Assistant
-              </>
-            ) : (
-              <>
-                <Mic className="mr-2" /> Show Voice Assistant
-              </>
-            )}
-          </Button>
-
-          {showVoicePanel && <VoiceAssistant />}
-
           <VoiceChatPanel interviewId={interview.id} />
         </div>
       </main>
