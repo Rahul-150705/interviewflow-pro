@@ -12,6 +12,7 @@ import {
   History, 
   BarChart3,
   Target,
+  ChevronLeft,
   Clock,
   ChevronRight,
   User,
@@ -46,6 +47,8 @@ const Dashboard = ({ onStartInterview }: DashboardProps) => {
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [loading, setLoading] = useState(true);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const itemsPerPage = 5;
 
   useEffect(() => {
     loadHistory();
@@ -233,7 +236,9 @@ const Dashboard = ({ onStartInterview }: DashboardProps) => {
             </Card>
           ) : (
             <div className="space-y-3">
-              {interviews.map((interview, index) => (
+              {interviews
+                .slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage)
+                .map((interview) => (
                 <Card 
                   key={interview.id} 
                   className="glass-card border-border/50 hover:border-primary/50 transition-all group hover-lift"
@@ -290,6 +295,37 @@ const Dashboard = ({ onStartInterview }: DashboardProps) => {
                   </CardContent>
                 </Card>
               ))}
+              
+              {/* Pagination Controls */}
+              {interviews.length > itemsPerPage && (
+                <div className="flex items-center justify-between pt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Showing {currentPage * itemsPerPage + 1}-{Math.min((currentPage + 1) * itemsPerPage, interviews.length)} of {interviews.length} interviews
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => p - 1)}
+                      disabled={currentPage === 0}
+                      className="border-border/50 hover:border-primary/50 hover:bg-primary/10"
+                    >
+                      <ChevronLeft className="w-4 h-4 mr-1" />
+                      Previous
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => p + 1)}
+                      disabled={(currentPage + 1) * itemsPerPage >= interviews.length}
+                      className="border-border/50 hover:border-primary/50 hover:bg-primary/10"
+                    >
+                      Next
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
