@@ -84,9 +84,10 @@ const Dashboard = ({ onStartInterview }: DashboardProps) => {
     }
   };
 
-  const totalInterviews = interviews.length;
-  const averageScore = interviews.length > 0 
-    ? Math.round(interviews.reduce((acc, i) => acc + (i.averageScore || 0), 0) / interviews.length)
+  const completedInterviews = interviews.filter(i => i.averageScore !== undefined && i.averageScore !== null);
+  const totalInterviews = completedInterviews.length;
+  const averageScore = completedInterviews.length > 0 
+    ? Math.round(completedInterviews.reduce((acc, i) => acc + (i.averageScore || 0), 0) / completedInterviews.length)
     : 0;
 
   const getGreeting = () => {
