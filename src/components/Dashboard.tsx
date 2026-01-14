@@ -233,7 +233,7 @@ const Dashboard = ({ onStartInterview }: DashboardProps) => {
             </Card>
           ) : (
             <div className="space-y-3">
-              {interviews.map((interview, index) => (
+              {interviews.slice(0, 5).map((interview, index) => (
                 <Card 
                   key={interview.id} 
                   className="glass-card border-border/50 hover:border-primary/50 transition-all group hover-lift"
@@ -290,6 +290,11 @@ const Dashboard = ({ onStartInterview }: DashboardProps) => {
                   </CardContent>
                 </Card>
               ))}
+              {interviews.length > 5 && (
+                <p className="text-sm text-muted-foreground text-center pt-2">
+                  Showing 5 of {interviews.length} interviews
+                </p>
+              )}
             </div>
           )}
         </div>
